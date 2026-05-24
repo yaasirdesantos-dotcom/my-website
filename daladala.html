@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daladala Navigator (Offline)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .Matokeo {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-left: 5px solid #007bff;
+            border-radius: 5px;
+            display: none;
+        }
+        .latra-notice {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            margin-top: 0px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚌 Daladala Navigator</h1>
+    <p style="text-align: center; font-size: 12px; color: green; font-weight: bold; margin-bottom: 2px;">Inafanya kazi bila Internet (Offline)</p>
+    <p class="latra-notice">Viwango sahihi vya LATRA (2026)</p>
+    
+    <label for="kutoka">Unatokea Wapi? (Kituo cha Mwanzo)</label>
+    <select id="kutoka">
+        <option value="">-- Chagua Kituo unakotoka --</option>
+        <option value="Kimara">Kimara</option>
+        <option value="Ubungo">Ubungo</option>
+        <option value="Mwenge">Mwenge</option>
+        <option value="Morocco">Morocco</option>
+        <option value="Magomeni">Magomeni</option>
+        <option value="Fire">Fire</option>
+        <option value="Kariakoo">Kariakoo</option>
+        <option value="Posta">Posta</option>
+    </select>
+
+    <label for="enda">Unaenda Wapi? (Kituo unachoishia)</label>
+    <select id="enda">
+        <option value="">-- Chagua Kituo unakoenda --</option>
+        <option value="Kimara">Kimara</option>
+        <option value="Ubungo">Ubungo</option>
+        <option value="Mwenge">Mwenge</option>
+        <option value="Morocco">Morocco</option>
+        <option value="Magomeni">Magomeni</option>
+        <option value="Fire">Fire</option>
+        <option value="Kariakoo">Kariakoo</option>
+        <option value="Posta">Posta</option>
+    </select>
+
+    <button onclick="tafutaDaladala()">Tafuta Usafiri</button>
+
+    <div id="matokeo" class="Matokeo"></div>
+</div>
+
+<script>
+// DATA SAHIHI YA RUTI NA NAULI (LATRA 2026)
+const data_za_safari = [
+    {
+        jina: "Mwendo Kasi (DART) - Kimara kwenda Posta",
+        vituo: ["Kimara", "Ubungo", "Magomeni", "Fire", "Posta"],
+        nauli: "Tsh 750",
+        maelezo: "Panda basi kuu la Mwendokasi (Rangi ya Bluu) linaloenda Posta moja kwa moja."
+    },
+    {
+        jina: "Mwendo Kasi (DART) - Kimara kwenda Morocco",
+        vituo: ["Kimara", "Ubungo", "Morocco"],
+        nauli: "Tsh 750",
+        maelezo: "Panda basi la Mwendokasi linalokata kona kuelekea Morocco."
+    },
+    {
+        jina: "Daladala ya Kawaida (Mwenge - Kariakoo)",
+        vituo: ["Mwenge", "Morocco", "Magomeni", "Kariakoo"],
+        nauli: "Tsh 700",
+        maelezo: "Panda daladala nyeupe yenye mstari mwekundu."
+    },
+    {
+        jina: "Daladala ya Kawaida (Kimara - Kariakoo via Ubungo)",
+        vituo: ["Kimara", "Ubungo", "Magomeni", "Kariakoo"],
+        nauli: "Tsh 700",
+        maelezo: "Panda daladala nyeupe yenye mstari wa bluu/mwekundu inayoshukia Kariakoo Shimoni."
+    },
+    {
+        jina: "Mwendo Kasi (DART) - Morocco kwenda Posta",
+        vituo: ["Morocco", "Magomeni", "Fire", "Posta"],
+        nauli: "Tsh 750",
+        maelezo: "Panda mwendokasi wa ruti ya Morocco - Posta."
+    }
+];
+
+function tafutaDaladala() {
+    const kutoka = document.getElementById('kutoka').value;
+    const enda = document.getElementById('enda').value;
+    const sanduku_la_matokeo = document.getElementById('matokeo');
+
+    if (!kutoka || !enda) {
+        sanduku_la_matokeo.style.display = "block";
+        sanduku_la_matokeo.innerHTML = "❌ Tafadhali chagua vituo vyote viwili!";
+        return;
+    }
+    if (kutoka === enda) {
+        sanduku_la_matokeo.style.display = "block";
+        sanduku_la_matokeo.innerHTML = "🚶‍♂️ Vituo ulivyochagua ni sawa! Hauhitaji usafiri, upo hapo hapo.";
+        return;
+    }
+
+    let usafiri_uliopatikana = [];
+
+    data_za_safari.forEach(safari => {
+        const indexKutoka = safari.vituo.indexOf(kutoka);
+        const indexEnda = safari.vituo.indexOf(enda);
+
+        // Hakikisha vituo vipo na kituo unakotoka kinatokea kabla ya unakoenda kwenye ruti
+        if (indexKutoka !== -1 && indexEnda !== -1 && indexKutoka < indexEnda) {
+            usafiri_uliopatikana.push(safari);
+        }
+    });
+
+    sanduku_la_matokeo.style.display = "block";
+    
+    if (usafiri_uliopatikana.length > 0) {
+        let text = "<h3>✅ Usafiri Umepatikana:</h3>";
+        usafiri_uliopatikana.forEach(gari => {
+            text += `
+                <p><strong>Njia:</strong> ${gari.jina}</p>
+                <p><strong>Nauli:</strong> ${gari.nauli}</p>
+                <p><strong>Maelezo ya Safari:</strong> ${gari.maelezo}</p>
+                <hr>
+            `;
+        });
+        sanduku_la_matokeo.innerHTML = text;
+    } else {
+        sanduku_la_matokeo.innerHTML = "😔 Samahani, hatujapata usafiri wa moja kwa moja wa daladala kwa ruti hii. Tutaongeza njia za kuunganisha magari hivi karibuni!";
+    }
+}
+</script>
+
+</body>
+</html>
+
