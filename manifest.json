@@ -1,17 +1,9 @@
 {
   "name": "Daladala Navigator",
   "short_name": "Daladala",
-  "description": "Navigeta ya ruti na nauli za daladala offline.",
-  "start_url": "daladala.html",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#f4f4f9",
-  "theme_color": "#007bff",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3421/3421111.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "background_color": "#000000",
+  "theme_color": "#000000"
 }
 
