@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Rescue of Habibu - 3D Chronicles</title>
+    <style>
+        body {
+            margin: 0; background-color: #000; color: #fff;
+            font-family: 'Courier New', monospace; overflow: hidden; text-align: center;
+        }
+        /* Skrini ya Story Mwanzo */
+        #storyScreen {
+            position: absolute; top:0; left:0; width:100vw; height:100vh;
+            background-color: #05050a; z-index: 100; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+        }
+        #storyText { font-size: 18px; line-height: 1.6; max-width: 600px; color: #00ffcc; margin-bottom: 30px; }
+        .start-btn { background: #ff3366; color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 5px; cursor: pointer; }
+        
+        /* Hud na Ramani ya Muongozo (Ninja Ryko style) */
+        #hud {
+            position: absolute; top: 10px; left: 10px; text-align: left;
+            background: rgba(0,0,0,0.7); padding: 10px; border: 1px solid #00ffcc; z-index: 10;
+        }
+        #radar {
+            position: absolute; top: 10px; right: 10px; width: 80px; height: 80px;
+            background: rgba(0,255,204,0.1); border: 2px solid #00ffcc; border-radius: 50%; z-index: 10;
+        }
+        #gameCanvas { display: block; margin: 0 auto; background-color: #111; }
+        
+        /* Controls za Simu */
+        .controls {
+            position: absolute; bottom: 20px; left:0; right:0; display: flex; justify-content: space-around; z-index: 10; padding: 0 10px;
+        }
+        .dpad { display: grid; grid-template-columns: repeat(3, 55px); gap: 5px; }
+        .action-zone { display: flex; flex-direction: column; gap: 10px; }
+        .btn {
+            background: rgba(30,30,30,0.8); color: white; border: 2px solid #00ffcc;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 10px; user-select: none;
+        }
+        .btn:active { background: #00ffcc; color: black; }
+        .btn-fire { border-color: #ff3366; padding: 20px 30px; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div id="storyScreen">
+        <h2 style="color: #ff3366; letter-spacing: 3px;">RESCUING HABIBU: GIANT WORLD</h2>
+        <div id="storyText">
+            "Mimi naitwa NICHOLOUS. Rafiki yangu wa damu, HABIBU, ametekwa na majitu makubwa ya ajabu na kupelekwa kwenye ulimwengu wao wa giza. Siwezi kukaa kimya na kuacha ndugu yangu apotee. Nina silaha yangu ya Plasma na mwili wangu una nguvu na kasi ya ajabu kama mwanariadha wa Temple Run! Habibu, vumilia... Nicholous nakuja kukuokoa!"
+        </div>
+        <button class="start-btn" onclick="startGame()">ANZA SAFARI ⚔️</button>
+    </div>
+
+    <div id="hud">
+        <div>SHUJAA: NICHOLOUS</div>
+        <div>PLASMA AMMO: ⚡ INFINITE</div>
+        <div>CHECKPOINT: <span id="cpName">Kifusi cha Kwanza</span></div>
+        <div style="color: #ff3366;">LENGO: Mfuate Habibu kwenye Radar!</div>
+    </div>
+
+    <canvas id="radar"></canvas>
+    
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+        <div class="dpad">
+            <div></div><div class="btn" id="up">↑</div><div></div>
+            <div class="btn" id="left">←</div><div></div><div class="btn" id="right">→</div>
+            <div></div><div class="btn" id="down">↓</div><div></div>
+        </div>
+        <div class="action-zone">
+            <div class="btn btn-fire" id="fire">PIGA 🔥</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const radar = document.getElementById("radar");
+        const ctxRadar = radar.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        radar.width = 80; radar.height = 80;
+
+        let gameRunning = false;
+        let isWin = false;
+
+        // Nafasi ya Nicholous katika Dunia (X, Y)
+        const nicholous = { x: 100, y: 150, angle: 0, size: 15 };
+        
+        // Checkpoints na Nafasi ya Habibu (Mwisho wa Dunia)
+        const checkpoint = { x: 400, y: 400, reached: false };
+        const habibu = { x: 800, y: 800 };
+
+        // Orodha ya Ma-Giant katika Dunia
+        let giants = [
+            { x: 300, y: 250, hp: 3, size: 60, name: "Goliath" },
+            { x: 500, y: 600, hp: 4, size: 80, name: "Titan" },
+            { x: 750, y: 700, hp: 5, size: 100, name: "Colossus" }
+        ];
+
+        let bullets = [];
+        let keys = { up: false, down: false, left: false, right: false };
+
+        function startGame() {
+            document.getElementById("storyScreen").style.display = "none";
+            gameRunning = true;
+            update();
+        }
+
+        // Setup Vitufe vya Kushika (Touch holding)
+        setupControl("up"); setupControl("down"); setupControl("left"); setupControl("right");
+        function setupControl(id) {
+            document.getElementById(id).addEventListener("touchstart", (e) => { e.preventDefault(); keys[id] = true; });
+            document.getElementById(id).addEventListener("touchend", () => keys[id] = false);
+        }
+
+        // Kitufe cha Kupiga Risasi ya Plasma
+        document.getElementById("fire").addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            if(!gameRunning) return;
+            bullets.push({
+                x: nicholous.x, y: nicholous.y,
+                vx: Math.cos(nicholous.angle) * 8, vy: Math.sin(nicholous.angle) * 8
+            });
+        });
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Mwendo wa Shujaa Nicholous
+            if (keys.left) nicholous.angle -= 0.05;
+            if (keys.right) nicholous.angle += 0.05;
+            if (keys.up) {
+                nicholous.x += Math.cos(nicholous.angle) * 4;
+                nicholous.y += Math.sin(nicholous.angle) * 4;
+            }
+            if (keys.down) {
+                nicholous.x -= Math.cos(nicholous.angle) * 3;
+                nicholous.y -= Math.sin(nicholous.angle) * 3;
+            }
+
+            // Angalia Checkpoint ya Kwanza
+            let distToCP = Math.hypot(checkpoint.x - nicholous.x, checkpoint.y - nicholous.y);
+            if(distToCP < 40 && !checkpoint.reached) {
+                checkpoint.reached = true;
+                document.getElementById("cpName").innerHTML = "Kifusi Kilipitwa! (Salama)";
+                document.getElementById("cpName").style.color = "#00ffcc";
+            }
+
+            // Angalia Ushindi: Kumuokoa Habibu
+            let distToHabibu = Math.hypot(habibu.x - nicholous.x, habibu.y - nicholous.y);
+            if(distToHabibu < 40) {
+                isWin = true; gameRunning = false;
+                alert("HONGERA NICHOLOUS! Umeshinda ma-Giant na kumwokoa HABIBU kwa ushujaa mkubwa!");
+                document.location.reload();
+                return;
+            }
+
+            // CHORA SIMULATOR YA 3D (Pseudo-3D View)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Chora Anga na Ardhi ya Ulimwengu wa Ma-Giant
+            ctx.fillStyle = "#0c0f1d"; ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+            ctx.fillStyle = "#161623"; ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+
+            // Kusogeza na Kuchora Risasi
+            bullets.forEach((b, bIdx) => {
+                b.x += b.vx; b.y += b.vy;
+                if(Math.hypot(b.x-nicholous.x, b.y-nicholous.y) > 400) bullets.splice(bIdx,1);
+            });
+
+            // CHORA MA-GIANT MBELE YAKO (Kama yapo karibu yanakuwa makubwa sana)
+            giants.forEach((giant, gIdx) => {
+                let dx = giant.x - nicholous.x;
+                let dy = giant.y - nicholous.y;
+                
+                // Rotation kulingana na uelekeo wa Nicholous
+                let rotX = dx * Math.cos(-nicholous.angle) - dy * Math.sin(-nicholous.angle);
+                let rotY = dx * Math.sin(-nicholous.angle) + dy * Math.cos(-nicholous.angle);
+
+                if (rotX > 0) { // Lipo mbele ya macho ya Nicholous
+                    let screenX = (rotY / rotX) * (canvas.width / 2) + (canvas.width / 2);
+                    let size = (giant.size / rotX) * 200; // Formula ya Kukuza jitu likiwa karibu
+
+                    if(size > 5) {
+                        // Chora Mwili wa Jitu (Giant)
+                        ctx.fillStyle = `rgba(255, 51, 102, ${Math.min(1, 200/rotX)})`;
+                        ctx.fillRect(screenX - size/2, (canvas.height/2) - size/2, size, size);
+                        
+                        // Jina la Giant juu ya kichwa chake
+                        ctx.fillStyle = "#fff"; ctx.font = `${size/4}px Arial`;
+                        ctx.fillText(`${giant.name} (HP:${giant.hp})`, screenX - size/2, (canvas.height/2) - size/2 - 10);
+                    }
+                }
+
+                // Cheki kama risasi imepiga jitu
+                bullets.forEach((b, bIdx) => {
+                    if(Math.hypot(giant.x - b.x, giant.y - b.y) < giant.size/2) {
+                        bullets.splice(bIdx, 1);
+                        giant.hp -= 1;
+                        if(giant.hp <= 0) giants.splice(gIdx, 1);
+                    }
+                });
+            });
+
+            // CHORA RADAR YA MUONGOZO (Ninja Ryko style - Juu Kulia)
+            ctxRadar.clearRect(0, 0, 80, 80);
+            ctxRadar.fillStyle = "#00ffcc";
+            ctxRadar.beginPath(); ctxRadar.arc(40, 40, 3, 0, Math.PI*2); ctxRadar.fill(); // Nicholous (Katikati)
+
+            // Habibu kwenye Radar (Rangi ya Njano)
+            let hDx = (habibu.x - nicholous.x) * 0.04 + 40;
+            let hDy = (habibu.y - nicholous.y) * 0.04 + 40;
+            ctxRadar.fillStyle = "#ffcc00";
+            ctxRadar.beginPath(); ctxRadar.arc(hDx, hDy, 4, 0, Math.PI*2); ctxRadar.fill();
+
+            requestAnimationFrame(update);
+        }
+    </script>
+</body>
+</html>
+
