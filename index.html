@@ -39,6 +39,120 @@
 <link rel="manifest" href="manifest.json">
 
 <body>
+<div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #007bff; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-family: sans-serif;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 20px; letter-spacing: 1px;">Daladala Navigator</h1>
+    
+    <div class="loading-spinner"></div>
+    
+    <p style="margin-top: 20px; opacity: 0.8; font-size: 1rem;">Inapakia ruti za daladala...</p>
+</div>
+
+<style>
+.loading-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #ffffff;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    animation: zunguka 1s linear infinite;
+}
+
+@keyframes zunguka {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        var loader = document.getElementById('loading-screen');
+        if(loader) {
+            loader.style.transition = 'opacity 0.5s ease';
+            loader.style.opacity = '0';
+            setTimeout(function() {
+                loader.style.display = 'none';
+            }, 500); // Inapotea kwa umaridadi
+        }
+    }, 2000); // Sekunde 2 za kuload
+});
+</script>
+<div class="daladala-dashboard" style="font-family: sans-serif; max-width: 80px; width: 90%; margin: 20px auto; padding: 15px; background: #2d2d2d; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); box-sizing: border-box;">
+    
+    <div style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px;">
+        <h3 style="color: #00ffcc; margin-top: 0;">★ Ruti Unazozipenda</h3>
+        <ul id="fav-routes-list" style="padding-left: 20px; color: #cccccc; line-height: 1.6;"></ul>
+    </div>
+
+    <div style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="color: #cccccc;">Allow Notifications</span>
+        <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+            <input type="checkbox" id="notif-switch" style="opacity: 0; width: 0; height: 0;">
+            <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 22px;"></span>
+        </label>
+    </div>
+
+    <div>
+        <h3 style="color: #00ffcc; margin-top: 0;">💬 Toa Maoni / Ushauri</h3>
+        <input type="text" id="comment-user" placeholder="Jina lako..." style="width: 100%; padding: 8px; margin-bottom: 8px; background: #1a1a1a; border: 1px solid #444; border-radius: 6px; color: white; box-sizing: border-box;">
+        <textarea id="comment-text" placeholder="Andika maoni yako hapa..." rows="3" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; border-radius: 6px; color: white; box-sizing: border-box; resize: none;"></textarea>
+        <button onclick="wasilishaMaoni()" style="background: #00ffcc; color: #1a1a1a; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px;">Tuma Maoni</button>
+        
+        <div style="margin-top: 15px;">
+            <h4 style="margin-bottom: 8px; color: #888;">Maoni:</h4>
+            <div id="comments-box" style="max-height: 120px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #444;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.switch input:checked + .slider { background-color: #00ffcc; }
+.switch input:checked + .slider:before { transform: translateX(22px); }
+.slider:before {
+    position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px;
+    background-color: white; transition: .4s; border-radius: 50%;
+}
+</style>
+
+<script>
+// Logic ya Notification, Favorites na Comments zote hapa
+const notifSwitch = document.getElementById('notif-switch');
+if (localStorage.getItem('daladala_notif') === 'granted') { notifSwitch.checked = true; }
+
+notifSwitch.addEventListener('change', function() {
+    if (this.checked) {
+        if (!("Notification" in window)) { alert("Haikubali kwenye hii browser."); this.checked = false; return; }
+        Notification.requestPermission().then(p => {
+            if (p === "granted") { localStorage.setItem('daladala_notif', 'granted'); alert("Notifications zimeruhusiwa!"); }
+            else { localStorage.setItem('daladala_notif', 'denied'); this.checked = false; }
+        });
+    } else { localStorage.setItem('daladala_notif', 'disabled'); }
+});
+
+function pakiaFavorites() {
+    const list = document.getElementById('fav-routes-list');
+    let favs = JSON.parse(localStorage.getItem('daladala_favs')) || ["Posta - Tabata", "Mbagala - Kariakoo"];
+    list.innerHTML = favs.length === 0 ? "<li>Hujachagua bado</li>" : favs.map(r => `<li>🚌 ${r}</li>`).join('');
+}
+
+function pakiaMaoni() {
+    const box = document.getElementById('comments-box');
+    let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [{ jina: "Saimon", ujumbe: "Inafanya kazi vizuri hata nikiwa offline!" }];
+    box.innerHTML = maoni.map(m => `<div style="border-bottom:1px solid #333; padding:5px 0; font-size:14px; color:#ccc;"><strong>${m.jina}:</strong> ${m.ujumbe}</div>`).reverse().join('');
+}
+
+function wasilishaMaoni() {
+    const jina = document.getElementById('comment-user');
+    const txt = document.getElementById('comment-text');
+    if (!jina.value.trim() || !txt.value.trim()) { alert("Jaza nafasi zote."); return; }
+    let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [];
+    maoni.push({ jina: jina.value.trim(), ujumbe: txt.value.trim() });
+    localStorage.setItem('daladala_comments', JSON.stringify(maoni));
+    jina.value = ""; txt.value = ""; pakiaMaoni();
+}
+pakiaFavorites(); pakiaMaoni();
+</script>
+
     <div class="container">
         <h1>Karibu Kwenye Website ya Yaasir!</h1>
         <p>Hii ni tovuti rasmi ya  iliyotengenezwa kupitia idea ya mabuye.</p>
@@ -54,5 +168,81 @@
 </p>
 
 </body>
+<div class="daladala-dashboard" style="font-family: sans-serif; max-width: 80px; width: 90%; margin: 20px auto; padding: 15px; background: #2d2d2d; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); box-sizing: border-box;">
+    
+    <div style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px;">
+        <h3 style="color: #00ffcc; margin-top: 0;">★ Ruti Unazozipenda</h3>
+        <ul id="fav-routes-list" style="padding-left: 20px; color: #cccccc; line-height: 1.6;"></ul>
+    </div>
+
+    <div style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="color: #cccccc;">Allow Notifications</span>
+        <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+            <input type="checkbox" id="notif-switch" style="opacity: 0; width: 0; height: 0;">
+            <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 22px;"></span>
+        </label>
+    </div>
+
+    <div>
+        <h3 style="color: #00ffcc; margin-top: 0;">💬 Toa Maoni / Ushauri</h3>
+        <input type="text" id="comment-user" placeholder="Jina lako..." style="width: 100%; padding: 8px; margin-bottom: 8px; background: #1a1a1a; border: 1px solid #444; border-radius: 6px; color: white; box-sizing: border-box;">
+        <textarea id="comment-text" placeholder="Andika maoni yako hapa..." rows="3" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; border-radius: 6px; color: white; box-sizing: border-box; resize: none;"></textarea>
+        <button onclick="wasilishaMaoni()" style="background: #00ffcc; color: #1a1a1a; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px;">Tuma Maoni</button>
+        
+        <div style="margin-top: 15px;">
+            <h4 style="margin-bottom: 8px; color: #888;">Maoni:</h4>
+            <div id="comments-box" style="max-height: 120px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #444;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.switch input:checked + .slider { background-color: #00ffcc; }
+.switch input:checked + .slider:before { transform: translateX(22px); }
+.slider:before {
+    position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px;
+    background-color: white; transition: .4s; border-radius: 50%;
+}
+</style>
+
+<script>
+// Logic ya Notification, Favorites na Comments zote hapa
+const notifSwitch = document.getElementById('notif-switch');
+if (localStorage.getItem('daladala_notif') === 'granted') { notifSwitch.checked = true; }
+
+notifSwitch.addEventListener('change', function() {
+    if (this.checked) {
+        if (!("Notification" in window)) { alert("Haikubali kwenye hii browser."); this.checked = false; return; }
+        Notification.requestPermission().then(p => {
+            if (p === "granted") { localStorage.setItem('daladala_notif', 'granted'); alert("Notifications zimeruhusiwa!"); }
+            else { localStorage.setItem('daladala_notif', 'denied'); this.checked = false; }
+        });
+    } else { localStorage.setItem('daladala_notif', 'disabled'); }
+});
+
+function pakiaFavorites() {
+    const list = document.getElementById('fav-routes-list');
+    let favs = JSON.parse(localStorage.getItem('daladala_favs')) || ["Posta - Tabata", "Mbagala - Kariakoo"];
+    list.innerHTML = favs.length === 0 ? "<li>Hujachagua bado</li>" : favs.map(r => `<li>🚌 ${r}</li>`).join('');
+}
+
+function pakiaMaoni() {
+    const box = document.getElementById('comments-box');
+    let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [{ jina: "Saimon", ujumbe: "Inafanya kazi vizuri hata nikiwa offline!" }];
+    box.innerHTML = maoni.map(m => `<div style="border-bottom:1px solid #333; padding:5px 0; font-size:14px; color:#ccc;"><strong>${m.jina}:</strong> ${m.ujumbe}</div>`).reverse().join('');
+}
+
+function wasilishaMaoni() {
+    const jina = document.getElementById('comment-user');
+    const txt = document.getElementById('comment-text');
+    if (!jina.value.trim() || !txt.value.trim()) { alert("Jaza nafasi zote."); return; }
+    let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [];
+    maoni.push({ jina: jina.value.trim(), ujumbe: txt.value.trim() });
+    localStorage.setItem('daladala_comments', JSON.stringify(maoni));
+    jina.value = ""; txt.value = ""; pakiaMaoni();
+}
+pakiaFavorites(); pakiaMaoni();
+</script>
+
 </html>
 
