@@ -6,10 +6,11 @@
     <title>Website ya Yaasir</title>
     <link rel="manifest" href="manifest.json">
     <style>
+        /* Muonekano wa Kisasa wa Background wenye Rangi za Kuvutia (Gemini Style) */
         body {
-            background-color: #1a1a1a;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1e38 50%, #0d0d15 100%);
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,81 +21,147 @@
             position: relative;
             overflow: hidden;
         }
+
+        /* Puto la mwanga nyuma ya kadi (Glow Effect) */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, #00ffcc, #007bff);
+            filter: blur(120px);
+            opacity: 0.25;
+            top: 20%;
+            left: 25%;
+            z-index: 1;
+        }
+
+        /* Kadi Kuu: Glassmorphism Effect (Kioo cha Ukungu) */
         .container {
-            padding: 30px;
-            border-radius: 15px;
-            background-color: #2d2d2d;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 85%;
+            padding: 35px 25px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 255, 204, 0.1);
+            max-width: 88%;
+            width: 380px;
             box-sizing: border-box;
             z-index: 5;
+            transition: transform 0.3s ease;
         }
+
+        /* Jina la Website na Ruti zenye Rangi ya Kuvutia */
         h1 {
-            color: #00ffcc;
+            background: linear-gradient(45deg, #00ffcc, #00bfff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0;
             margin-bottom: 15px;
-            font-size: 28px;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
+
         p {
-            color: #cccccc;
-            font-size: 18px;
-            line-height: 1.5;
-            margin-bottom: 25px;
+            color: #b4c6ef;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 30px;
         }
+
+        /* Kitufe chenye Rangi ya Kuvutia na Uhuishaji (Gradient Button) */
         .btn-blue {
             display: inline-block;
-            background-color: #007bff;
+            background: linear-gradient(135deg, #007bff 0%, #00d2ff 100%);
             color: white;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
+
+        .btn-blue:hover {
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
         .btn-blue:active {
-            transform: scale(0.98);
+            transform: translateY(1px);
         }
+
+        /* Kitufe cha Menu (Vistari Vitatu vya Kisasa) */
+        .menu-trigger {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #00ffcc;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 12px;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-trigger:hover {
+            background: rgba(0, 255, 204, 0.1);
+            color: #ffffff;
+        }
+
+        /* Muundo wa Swichi ya Notification (Toggle Switch) */
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #555; transition: .4s; border-radius: 22px;
+            background-color: #334155; transition: .4s; border-radius: 22px;
         }
         .slider:before {
             position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px;
             background-color: white; transition: .4s; border-radius: 50%;
         }
-        #notif-switch:checked + .slider { background-color: #00ffcc; }
+        #notif-switch:checked + .slider { background: linear-gradient(45deg, #00ffcc, #007bff); }
         #notif-switch:checked + .slider:before { transform: translateX(22px); }
+
+        /* Uhuishaji wa Loading (Spinner Animation) */
+        @keyframes zunguka { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
     </style>
 </head>
 <body>
 
-    <div style="position: absolute; top: 15px; right: 15px; z-index: 9999;">
-        <button onclick="funguaMenu()" style="background: none; border: none; color: #00ffcc; font-size: 32px; cursor: pointer; padding: 5px;">☰</button>
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 9999;">
+        <button onclick="funguaMenu()" class="menu-trigger">☰</button>
     </div>
 
     <div class="container">
         <h1>Karibu Kwenye Website ya Yaasir!</h1>
-        <p>Hii ni tovuti rasmi ya iliyotenezwa kupitia idea ya mabuye.</p>
+        <p>Hii ni tovuti rasmi ya kisasa iliyotengenezwa kwa weledi wa hali ya juu kupitia idea ya mabuye.</p>
         
         <button onclick="anzishaLoadingNaTafuta()" class="btn-blue">Angalia Daladala Navigator 🚌</button>
         
-        <br><br>
-        <a href="daladala_navigator.apk" style="display: inline-block; color: #888; font-size: 12px; text-decoration: underline;">Download Daladala Navigator ⬇️</a>
+        <div style="margin-top: 20px;">
+            <a href="daladala_navigator.apk" style="color: #88a4e6; font-size: 13px; text-decoration: none; font-weight: 500;">Download Daladala Navigator APK ⬇️</a>
+        </div>
     </div>
 
-    <div id="side-menu" style="position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background: #1e1e1e; box-shadow: -5px 0 15px rgba(0,0,0,0.5); z-index: 10000; transition: 0.4s ease; padding: 20px; box-sizing: border-box; overflow-y: auto; text-align: left;">
+    <div id="side-menu" style="position: fixed; top: 0; right: -340px; width: 320px; height: 100%; background: #0f1424; border-left: 1px solid rgba(255,255,255,0.05); box-shadow: -10px 0 30px rgba(0,0,0,0.5); z-index: 10000; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 30px 25px; box-sizing: border-box; overflow-y: auto; text-align: left;">
         
-        <div style="text-align: left; margin-bottom: 25px;">
-            <button onclick="fungaMenu()" style="background: none; border: none; color: #ff5555; font-size: 20px; cursor: pointer; font-weight: bold;">✕ Funga Menu</button>
+        <div style="margin-bottom: 30px;">
+            <button onclick="fungaMenu()" style="background: none; border: none; color: #ff5577; font-size: 16px; cursor: pointer; font-weight: 600; padding: 0;">✕ Funga Menu</button>
         </div>
 
-        <div style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
-            <h3 style="color: #00ffcc; margin-top: 0; font-size: 18px;">⚙️ Mipangilio (Settings)</h3>
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="color: #cccccc; font-size: 14px;">Allow Notifications</span>
+        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 25px; margin-bottom: 25px;">
+            <h3 style="color: #00ffcc; margin-top: 0; font-size: 17px; font-weight: 600;">⚙️ Mipangilio (Settings)</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px;">
+                <span style="color: #94a3b8; font-size: 14px;">Ruhusu Notification</span>
                 <label style="position: relative; display: inline-block; width: 44px; height: 22px;">
                     <input type="checkbox" id="notif-switch" style="opacity: 0; width: 0; height: 0;">
                     <span class="slider"></span>
@@ -102,92 +169,107 @@
             </div>
         </div>
 
-        <div style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
-            <h3 style="color: #00ffcc; margin-top: 0; font-size: 18px;">★ Favorite Routes</h3>
-            <ul id="fav-routes-list" style="padding-left: 20px; color: #cccccc; line-height: 1.6; font-size: 14px; margin: 5px 0;"></ul>
+        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 25px; margin-bottom: 25px;">
+            <h3 style="color: #00ffcc; margin-top: 0; font-size: 17px; font-weight: 600;">★ Favorite Routes</h3>
+            <ul id="fav-routes-list" style="padding-left: 20px; color: #cbd5e1; line-height: 1.8; font-size: 14px; margin: 10px 0;"></ul>
         </div>
 
         <div>
-            <h3 style="color: #00ffcc; margin-top: 0; font-size: 18px;">💬 See Comments / Maoni</h3>
-            <div style="margin-top: 10px;">
-                <input type="text" id="comment-user" placeholder="Jina lako..." style="width: 100%; padding: 8px; margin-bottom: 8px; background: #2d2d2d; border: 1px solid #444; border-radius: 6px; color: white; box-sizing: border-box; font-size: 14px;">
-                <textarea id="comment-text" placeholder="Andika maoni yako hapa..." rows="3" style="width: 100%; padding: 8px; background: #2d2d2d; border: 1px solid #444; border-radius: 6px; color: white; box-sizing: border-box; resize: none; font-size: 14px;"></textarea>
-                <button onclick="wasilishaMaoni()" style="background: #00ffcc; color: #1a1a1a; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px;">Tuma Maoni</button>
+            <h3 style="color: #00ffcc; margin-top: 0; font-size: 17px; font-weight: 600;">💬 Maoni ya Wadau</h3>
+            <div style="margin-top: 15px;">
+                <input type="text" id="comment-user" placeholder="Jina lako..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; box-sizing: border-box; font-size: 14px; outline: none;">
+                <textarea id="comment-text" placeholder="Andika maoni yako hapa..." rows="3" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; box-sizing: border-box; resize: none; font-size: 14px; outline: none;"></textarea>
+                <button onclick="wasilishaMaoni()" style="background: linear-gradient(45deg, #00ffcc, #00bfff); color: #0f172a; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; font-size: 14px;">Tuma Maoni</button>
             </div>
             
-            <div style="margin-top: 15px;">
-                <h4 style="margin-bottom: 8px; color: #888; font-size: 13px;">Maoni ya wadau:</h4>
-                <div id="comments-box" style="max-height: 150px; overflow-y: auto; background: #2d2d2d; padding: 10px; border-radius: 6px; border: 1px solid #444;"></div>
+            <div style="margin-top: 20px;">
+                <h4 style="margin-bottom: 10px; color: #64748b; font-size: 13px; font-weight: 500;">Maoni yaliyotumwa:</h4>
+                <div id="comments-box" style="max-height: 180px; overflow-y: auto; background: #1e293b; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);"></div>
             </div>
         </div>
     </div>
 
-    <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(26, 26, 26, 0.95); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #00ffcc;">
-        <div style="border: 4px solid rgba(0, 255, 220, 0.1); border-top: 4px solid #00ffcc; border-radius: 50%; width: 45px; height: 45px; animation: zunguka 1s linear infinite;"></div>
-        <p style="margin-top: 20px; color: #cccccc; font-size: 18px;">Inapakia ruti za daladala...</p>
+    <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.98); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #00ffcc; backdrop-filter: blur(8px);">
+        <div style="border: 4px solid rgba(0, 255, 220, 0.1); border-top: 4px solid #00ffcc; border-radius: 50%; width: 50px; height: 50px; animation: zunguka 1s linear infinite; box-shadow: 0 0 15px rgba(0,255,204,0.3);"></div>
+        <p style="margin-top: 25px; color: #94a3b8; font-size: 16px; font-weight: 500; letter-spacing: 0.5px;">Inapakia ruti za daladala...</p>
     </div>
 
-    <footer style="position: absolute; bottom: 15px; width: 100%; text-align: center; color: #666; font-size: 12px;">
+    <footer style="position: absolute; bottom: 20px; width: 100%; text-align: center; color: #475569; font-size: 12px; font-weight: 500;">
         © 2026 Created by Yaasir | Tel: 0772282160
     </footer>
 
     <script>
-        @keyframes zunguka { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        // --- SIDEBAR MENUS ---
-        function funguaMenu() { document.getElementById('side-menu').style.right = '0'; }
-        function fungaMenu() { document.getElementById('side-menu').style.right = '-320px'; }
+        // --- FUNGA NA FUNGUA MENU ---
+        function funguaMenu() { 
+            document.getElementById('side-menu').style.right = '0'; 
+        }
+        function fungaMenu() { 
+            document.getElementById('side-menu').style.right = '-340px'; 
+        }
 
-        // --- BUTTON LOADING ---
+        // --- AMRI YA LOADING UKIBONYEZA KITUFE ---
         function anzishaLoadingNaTafuta() {
             var loader = document.getElementById('loading-screen');
-            if(loader) loader.style.display = 'flex';
+            if(loader) {
+                loader.style.display = 'flex';
+            }
             setTimeout(function() {
-                if(loader) loader.style.display = 'none';
+                if(loader) {
+                    loader.style.display = 'none';
+                }
                 alert("Ruti zimepakiwa kwa mafanikio!");
-            }, 1500);
+            }, 1800);
         }
 
-        // --- NOTIFICATION LOGIC ---
+        // --- MIFUMO YA NOTIFICATION ---
         const notifSwitch = document.getElementById('notif-switch');
-        if (localStorage.getItem('daladala_notif') === 'granted') { notifSwitch.checked = true; }
-        notifSwitch.addEventListener('change', function() {
-            if (this.checked) {
-                if (!("Notification" in window)) { alert("Haikubali kwenye hii browser."); this.checked = false; return; }
-                Notification.requestPermission().then(p => {
-                    if (p === "granted") { localStorage.setItem('daladala_notif', 'granted'); alert("Notifications zimeruhusiwa!"); }
-                    else { localStorage.setItem('daladala_notif', 'denied'); this.checked = false; }
-                });
-            } else { localStorage.setItem('daladala_notif', 'disabled'); }
-        });
+        if (localStorage.getItem('daladala_notif') === 'granted') { 
+            if(notifSwitch) notifSwitch.checked = true; 
+        }
+        if(notifSwitch) {
+            notifSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    if (!("Notification" in window)) { alert("Browser haisapoti system hii."); this.checked = false; return; }
+                    Notification.requestPermission().then(function(p) {
+                        if (p === "granted") { localStorage.setItem('daladala_notif', 'granted'); alert("Umefanikiwa kuruhusu notifications!"); }
+                        else { localStorage.setItem('daladala_notif', 'denied'); notifSwitch.checked = false; }
+                    });
+                } else { localStorage.setItem('daladala_notif', 'disabled'); }
+            });
+        }
 
-        // --- FAVORITES LOGIC ---
+        // --- MFUMO WA FAVORITES ---
         function pakiaFavorites() {
             const list = document.getElementById('fav-routes-list');
+            if(!list) return;
             let favs = JSON.parse(localStorage.getItem('daladala_favs')) || ["Posta - Tabata", "Mbagala - Kariakoo"];
-            list.innerHTML = favs.length === 0 ? "<li>Hujachagua bado</li>" : favs.map(r => `<li>🚌 ${r}</li>`).join('');
+            list.innerHTML = favs.length === 0 ? "<li>Hujachagua bado</li>" : favs.map(function(r) { return "<li>🚌 " + r + "</li>"; }).join('');
         }
 
-        // --- COMMENTS LOGIC ---
+        // --- MFUMO WA MAONI (COMMENTS) ---
         function pakiaMaoni() {
             const box = document.getElementById('comments-box');
+            if(!box) return;
             let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [
                 { jina: "Yaasir", ujumbe: "Karibu kwenye Daladala Navigator! Mawasiliano: 0772282160" }
             ];
-            box.innerHTML = maoni.map(m => `<div style="border-bottom:1px solid #333; padding:5px 0; font-size:13px; color:#ccc;"><strong>${m.jina}:</strong> ${m.ujumbe}</div>`).reverse().join('');
+            box.innerHTML = maoni.map(function(m) { 
+                return '<div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:8px 0; font-size:13px; color:#cbd5e1;"><strong>' + m.jina + ':</strong> ' + m.ujumbe + '</div>'; 
+            }).reverse().join('');
         }
 
         function wasilishaMaoni() {
             const jina = document.getElementById('comment-user');
             const txt = document.getElementById('comment-text');
-            if (!jina.value.trim() || !txt.value.trim()) { alert("Tafadhali jaza nafasi zote."); return; }
+            if (!jina || !txt || !jina.value.trim() || !txt.value.trim()) { alert("Tafadhali jaza jina na ujumbe wako."); return; }
+            
             let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [];
             maoni.push({ jina: jina.value.trim(), ujumbe: txt.value.trim() });
             localStorage.setItem('daladala_comments', JSON.stringify(maoni));
             jina.value = ""; txt.value = ""; pakiaMaoni();
         }
 
-        // Run on start
+        // Pakia mifumo yote punde tu ukurasa unapofunguka
         pakiaFavorites(); pakiaMaoni();
     </script>
 </body>
