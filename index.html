@@ -595,7 +595,7 @@
 <div id="mapFullscreen" class="map-fullscreen">
   <div class="map-fs-topbar">
     <div class="map-fs-search-wrap">
-      <input type="text" id="mapSearchInput" class="map-fs-search" placeholder="🔍 Tafuta kituo (mf. Mwenge, Posta)..." oninput="filterStationSuggestions()" onfocus="filterStationSuggestions()">
+      <input type="text" id="mapSearchInput" class="map-fs-search" placeholder="🔍 Tafuta kituo (mf. Mwenge, Posta)..." oninput="filterStationSuggestions()" onfocus="filterStationSuggestions()" onkeydown="if(event.key==='Enter'){ selectFirstSuggestion(); }">
       <div id="stationSuggestions" class="station-suggestions"></div>
     </div>
     <button class="map-fs-close" onclick="closeMapFullscreen()">✕</button>
@@ -772,8 +772,15 @@
     if(q.length === 0){ box.classList.remove('show'); box.innerHTML=''; return; }
     const matches = stations.filter(s => s.toLowerCase().includes(q) && coords[s]).slice(0, 6);
     if(matches.length === 0){ box.classList.remove('show'); box.innerHTML='<div class="suggestion-empty">Hakuna kituo kinacholingana</div>'; box.classList.add('show'); return; }
-    box.innerHTML = matches.map(s => `<div class="suggestion-item" onclick="pickStationFromSearch('${s.replace(/'/g,"\\'")}')">📍 ${s}</div>`).join('');
+    box.innerHTML = matches.map(s => `<div class="suggestion-item" onmousedown="event.preventDefault(); pickStationFromSearch('${s.replace(/'/g,"\\'")}')">📍 ${s}</div>`).join('');
     box.classList.add('show');
+  }
+
+  function selectFirstSuggestion(){
+    const q = document.getElementById('mapSearchInput').value.trim().toLowerCase();
+    if(q.length === 0) return;
+    const match = stations.find(s => s.toLowerCase().includes(q) && coords[s]);
+    if(match) pickStationFromSearch(match);
   }
 
   function pickStationFromSearch(name){
