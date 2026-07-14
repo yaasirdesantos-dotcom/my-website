@@ -151,7 +151,83 @@
   }
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
-  .pick-map-large{height:min(62vh, 480px) !important;}
+
+  /* ===== Fullscreen map overlay ===== */
+  .map-fullscreen{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:var(--paper);
+    display:none;
+    flex-direction:column;
+  }
+  .map-fullscreen.open{display:flex;}
+  .map-fs-topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px;
+    background:var(--paper-card);
+    border-bottom:1px solid var(--rule);
+    position:relative;
+    z-index:2;
+  }
+  .map-fs-search-wrap{flex:1; position:relative;}
+  .map-fs-search{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--rule);
+    background:var(--card-alt);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+  }
+  .map-fs-search:focus{outline:2px solid var(--teal); outline-offset:1px;}
+  .station-suggestions{
+    display:none;
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0; right:0;
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    overflow:hidden;
+    max-height:260px;
+    overflow-y:auto;
+    box-shadow:var(--shadow);
+    z-index:5;
+  }
+  .station-suggestions.show{display:block;}
+  .suggestion-item{
+    padding:12px 14px;
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    border-bottom:1px solid var(--rule);
+    cursor:pointer;
+  }
+  .suggestion-item:last-child{border-bottom:none;}
+  .suggestion-item:hover, .suggestion-item:active{background:rgba(47,230,196,0.1);}
+  .suggestion-empty{padding:12px 14px; font-size:13px; color:var(--ink-soft); font-style:italic;}
+  .map-fs-close{
+    width:42px; height:42px;
+    border-radius:10px;
+    border:1.5px solid var(--rule);
+    background:var(--card-alt);
+    color:var(--ink);
+    font-size:18px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .map-fs-canvas{flex:1; width:100%;}
+  .map-fs-bottom{
+    background:var(--paper-card);
+    border-top:1px solid var(--rule);
+    padding:14px;
+    max-height:38vh;
+    overflow-y:auto;
+  }
 
   /* ===== Panels ===== */
   main{max-width:640px; margin:0 auto; padding:0 16px;}
@@ -415,11 +491,11 @@
     text-transform:uppercase;
     padding:8px 12px;
   }
-  #routeMap, #pickMap{
+  #routeMap{
     height:240px;
     width:100%;
   }
-  #pickMap{height:280px; cursor:crosshair;}
+  #pickMap{width:100%; cursor:crosshair;}
   .map-note{
     font-family:'Inter', sans-serif;
     font-style:italic;
@@ -459,7 +535,7 @@
     <p class="panel-label">Tafuta Usafiri</p>
     <div class="tabs">
       <button class="tab-btn active" id="tabVituoBtn" onclick="switchTab('vituo')">📋 Vituo</button>
-      <button class="tab-btn" id="tabRamaniBtn" onclick="switchTab('ramani')">🗺️ Ramani</button>
+      <button class="tab-btn" id="tabRamaniBtn" onclick="openMapFullscreen()">🗺️ Ramani</button>
     </div>
 
     <div id="tabVituo" class="tab-panel active">
@@ -484,16 +560,8 @@
     </div>
 
     <div id="tabRamani" class="tab-panel">
-      <p style="margin:0 0 10px; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--ink-soft);">Gusa ramani mara ya kwanza kuweka <strong>Kutoka</strong>, mara ya pili kuweka <strong>Kwenda</strong> — tutakadiria kilomita na nauli papo hapo.</p>
-      <div class="map-box show" style="margin-top:0;">
-        <div class="map-label">🗺️ Gusa Kuchagua Vituo</div>
-        <div id="pickMap" class="pick-map-large"></div>
-        <p class="map-note">Umbali ni wa mstari ulionyooka (si njia halisi ya barabara) — nauli ni makadirio.</p>
-      </div>
-      <div class="result-box" id="pickResultBox">
-        <div id="pickResultContent"></div>
-      </div>
-      <button class="btn" style="margin-top:10px; background:var(--card-alt);" onclick="resetPickMap()">↺ Anza Upya</button>
+      <p style="margin:0 0 12px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink-soft);">Ramani inafunguka skrini nzima ili uone vituo kwa urahisi zaidi.</p>
+      <button class="btn" onclick="openMapFullscreen()">🗺️ Fungua Ramani Kamili</button>
     </div>
   </section>
 
@@ -523,6 +591,22 @@
     <button class="btn" style="margin-top:10px;">Wasilisha</button>
   </section>
 </main>
+
+<div id="mapFullscreen" class="map-fullscreen">
+  <div class="map-fs-topbar">
+    <div class="map-fs-search-wrap">
+      <input type="text" id="mapSearchInput" class="map-fs-search" placeholder="🔍 Tafuta kituo (mf. Mwenge, Posta)..." oninput="filterStationSuggestions()" onfocus="filterStationSuggestions()">
+      <div id="stationSuggestions" class="station-suggestions"></div>
+    </div>
+    <button class="map-fs-close" onclick="closeMapFullscreen()">✕</button>
+  </div>
+  <div id="pickMap" class="map-fs-canvas"></div>
+  <div class="map-fs-bottom">
+    <p class="map-note" style="margin:0 0 8px;">Gusa ramani mara ya kwanza kuweka <strong>Kutoka</strong>, mara ya pili kuweka <strong>Kwenda</strong> — au tumia search hapo juu.</p>
+    <div class="result-box" id="pickResultBox"><div id="pickResultContent"></div></div>
+    <button class="btn" style="margin-top:8px; background:var(--card-alt);" onclick="resetPickMap()">↺ Anza Upya</button>
+  </div>
+</div>
 
 <footer>
   <p>© 2026 Created by <strong>Yaasir</strong> · Tech Support: 0772282160</p>
@@ -633,23 +717,22 @@
   }
 
   const pickMap = L.map('pickMap', {zoomControl:false, attributionControl:false}).setView([-6.8, 39.28], 12);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:20, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(pickMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:20, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(pickMap);
   setTimeout(() => pickMap.invalidateSize(), 200);
 
   let pointA = null, pointB = null, markerA = null, markerB = null, pickLine = null;
   const iconA = L.divIcon({html:'🟢', className:'', iconSize:[22,22]});
   const iconB = L.divIcon({html:'🔴', className:'', iconSize:[22,22]});
 
-  pickMap.on('click', function(e){
-    const latlng = [e.latlng.lat, e.latlng.lng];
+  function choosePoint(latlngArr, label){
     if(!pointA){
-      pointA = latlng;
-      markerA = L.marker(latlng, {icon:iconA}).addTo(pickMap).bindPopup('Kutoka').openPopup();
+      pointA = latlngArr;
+      markerA = L.marker(latlngArr, {icon:iconA}).addTo(pickMap).bindPopup(label || 'Kutoka').openPopup();
     } else if(!pointB){
-      pointB = latlng;
-      markerB = L.marker(latlng, {icon:iconB}).addTo(pickMap).bindPopup('Kwenda').openPopup();
-      pickLine = L.polyline([pointA, pointB], {color:'#7A2E2E', weight:4, dashArray:'6 6'}).addTo(pickMap);
-      pickMap.fitBounds(L.latLngBounds([pointA, pointB]), {padding:[30,30]});
+      pointB = latlngArr;
+      markerB = L.marker(latlngArr, {icon:iconB}).addTo(pickMap).bindPopup(label || 'Kwenda').openPopup();
+      pickLine = L.polyline([pointA, pointB], {color:'#FF6B6B', weight:4, dashArray:'6 6'}).addTo(pickMap);
+      pickMap.fitBounds(L.latLngBounds([pointA, pointB]), {padding:[40,40]});
 
       const km = distanceKm(pointA, pointB);
       const box = document.getElementById('pickResultBox');
@@ -665,7 +748,11 @@
         </div>
       `;
     }
-    // 3rd tap onward does nothing until reset
+    // 3rd tap/selection onward does nothing until reset
+  }
+
+  pickMap.on('click', function(e){
+    choosePoint([e.latlng.lat, e.latlng.lng]);
   });
 
   function resetPickMap(){
@@ -678,6 +765,40 @@
     pickMap.setView([-6.8, 39.28], 12);
   }
 
+  // ===== Search bar on the fullscreen map =====
+  function filterStationSuggestions(){
+    const q = document.getElementById('mapSearchInput').value.trim().toLowerCase();
+    const box = document.getElementById('stationSuggestions');
+    if(q.length === 0){ box.classList.remove('show'); box.innerHTML=''; return; }
+    const matches = stations.filter(s => s.toLowerCase().includes(q) && coords[s]).slice(0, 6);
+    if(matches.length === 0){ box.classList.remove('show'); box.innerHTML='<div class="suggestion-empty">Hakuna kituo kinacholingana</div>'; box.classList.add('show'); return; }
+    box.innerHTML = matches.map(s => `<div class="suggestion-item" onclick="pickStationFromSearch('${s.replace(/'/g,"\\'")}')">📍 ${s}</div>`).join('');
+    box.classList.add('show');
+  }
+
+  function pickStationFromSearch(name){
+    const c = coords[name];
+    if(!c) return;
+    pickMap.setView(c, 15);
+    choosePoint(c, name);
+    document.getElementById('mapSearchInput').value = name;
+    document.getElementById('stationSuggestions').classList.remove('show');
+  }
+
+  // ===== Fullscreen map overlay =====
+  function openMapFullscreen(){
+    document.getElementById('mapFullscreen').classList.add('open');
+    document.getElementById('tabVituoBtn').classList.remove('active');
+    document.getElementById('tabRamaniBtn').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => pickMap.invalidateSize(), 150);
+  }
+  function closeMapFullscreen(){
+    document.getElementById('mapFullscreen').classList.remove('open');
+    document.body.style.overflow = '';
+    switchTab('vituo');
+  }
+
   let routeMap = null, routeLayer = null;
   function drawMap(from, to){
     const mapBox = document.getElementById('mapBox');
@@ -687,7 +808,7 @@
 
     if(!routeMap){
       routeMap = L.map('routeMap', {zoomControl:false, attributionControl:false});
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:20, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(routeMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:20, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(routeMap);
     }
     if(routeLayer){ routeMap.removeLayer(routeLayer); }
 
@@ -765,10 +886,8 @@
 
   function switchTab(tab){
     document.getElementById('tabVituo').classList.toggle('active', tab==='vituo');
-    document.getElementById('tabRamani').classList.toggle('active', tab==='ramani');
     document.getElementById('tabVituoBtn').classList.toggle('active', tab==='vituo');
     document.getElementById('tabRamaniBtn').classList.toggle('active', tab==='ramani');
-    if(tab==='ramani'){ setTimeout(() => pickMap.invalidateSize(), 100); }
   }
 
   // ===== Install App (PWA) =====
