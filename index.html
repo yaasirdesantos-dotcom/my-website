@@ -1,447 +1,723 @@
 <!DOCTYPE html>
 <html lang="sw">
-<link rel="manifest" href="manifest.json">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Daladala Navigator</title>
-    <link rel="manifest" href="manifest.json">
-    <style>
-        /* Mfumo wa Rangi za Kijeshi na Premium (Deep Dark Theme + Cyberpunk Accents) */
-        body {
-            background: radial-gradient(circle at 50% 30%, #1e1e38 0%, #0f172a 60%, #080c14 100%);
-            color: #f8fafc;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-            overflow-x: hidden;
-            -webkit-user-select: none;
-            user-select: none;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Daladala Navigator — Bodi ya Ruti</title>
+<meta name="description" content="Tafuta ruti za daladala Dar es Salaam kwa haraka — vituo, nauli rasmi za LATRA, na bodi kamili ya ruti kwa kanda.">
+<meta name="theme-color" content="#0A0F1C">
+<meta property="og:title" content="Daladala Navigator">
+<meta property="og:description" content="Siri ya usafiri wa haraka na salama — kiganjani mwako.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%230A0F1C'/%3E%3Crect x='14' y='34' width='72' height='38' rx='6' fill='%232FE6C4' stroke='%230A0F1C' stroke-width='4'/%3E%3Ccircle cx='30' cy='76' r='9' fill='%230A0F1C'/%3E%3Ccircle cx='70' cy='76' r='9' fill='%230A0F1C'/%3E%3Crect x='20' y='42' width='16' height='14' fill='%230A0F1C'/%3E%3Crect x='42' y='42' width='16' height='14' fill='%230A0F1C'/%3E%3Crect x='64' y='42' width='16' height='14' fill='%230A0F1C'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+  :root{
+    --paper:#0A0F1C;
+    --paper-card:#121A2B;
+    --card-alt:#16213A;
+    --ink:#E9EEF7;
+    --ink-soft:#8B98B4;
+    --yellow:#F2B705;
+    --yellow-deep:#C98A0D;
+    --green:#0E1626;
+    --oxblood:#FF6B6B;
+    --rule:#22304C;
+    --teal:#2FE6C4;
+    --blue1:#2B6FF0;
+    --blue2:#22C1F0;
+    --shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation:none !important; transition:none !important;}
+  }
+  body{
+    background:
+      radial-gradient(ellipse at top left, rgba(47,230,196,0.10), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(43,111,240,0.10), transparent 55%),
+      var(--paper);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  a{color:inherit;}
 
-        /* Ambient Glow za nyuma zinazoleta mvuto mkubwa wa UI */
-        .ambient-glow {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(45deg, rgba(0, 255, 204, 0.4), rgba(0, 123, 255, 0.4));
-            filter: blur(130px);
-            top: 15%;
-            border-radius: 50%;
-            z-index: 1;
-            pointer-events: none;
-        }
+  /* ===== Header ===== */
+  header.board{
+    background:linear-gradient(180deg, #0E1626 0%, #0A0F1C 100%);
+    color:var(--ink);
+    padding:26px 18px 30px;
+    border-bottom:1px solid var(--rule);
+    position:relative;
+    overflow:hidden;
+  }
+  header.board::after{
+    content:"";
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 80% 0%, rgba(47,230,196,0.12), transparent 45%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--teal);
+    margin:0 0 8px;
+  }
+  h1.title{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size:clamp(28px, 9vw, 40px);
+    line-height:1.08;
+    margin:0 0 8px;
+    letter-spacing:-.02em;
+    background:linear-gradient(90deg, var(--teal), var(--blue2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .tagline{
+    font-family:'Inter', sans-serif;
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:0;
+    max-width:32ch;
+  }
+  .dev-credit{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:16px;
+    background:rgba(47,230,196,0.08);
+    border:1px solid rgba(47,230,196,0.35);
+    border-radius:20px;
+    padding:6px 14px;
+    font-family:'Space Mono', monospace;
+    font-size:11.5px;
+    color:var(--teal);
+  }
 
-        /* Muundo wa Native Mobile App Box (Unyama wa Kadi ya Glassmorphism) */
-        .app-shell {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 28px;
-            padding: 28px 22px;
-            width: 100%;
-            max-width: 380px;
-            box-sizing: border-box;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 255, 204, 0.2);
-            z-index: 5;
-            animation: appIningia 0.6s cubic-bezier(0.16, 1, 0.3, 1) ease-out;
-        }
+  /* ===== Panels ===== */
+  main{max-width:640px; margin:0 auto; padding:0 16px;}
 
-        @keyframes appIningia {
-            0% { opacity: 0; transform: translateY(20px) scale(0.98); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+  .panel{
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    margin-top:-14px;
+    padding:20px;
+    position:relative;
+    z-index:2;
+  }
+  .panel-label{
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--teal);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel-label::before{content:"🎫"; font-size:16px;}
 
-        .app-header h1 {
-            background: linear-gradient(135deg, #00ffcc 0%, #00bfff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 26px;
-            font-weight: 800;
-            margin: 0 0 6px 0;
-            letter-spacing: -0.5px;
-        }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  select, button.btn{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    padding:13px 10px;
+    border-radius:10px;
+  }
+  select{
+    border:1.5px solid var(--rule);
+    background:var(--card-alt);
+    color:var(--ink);
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--teal) 50%), linear-gradient(135deg, var(--teal) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 12px) center;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+  }
+  select:focus, button.btn:focus{outline:2px solid var(--teal); outline-offset:2px;}
 
-        .app-header p {
-            color: #94a3b8;
-            font-size: 13.5px;
-            margin: 0 0 28px 0;
-            font-weight: 400;
-        }
+  button.btn{
+    border:none;
+    background:linear-gradient(90deg, var(--blue1), var(--blue2));
+    color:#fff;
+    font-weight:700;
+    letter-spacing:.02em;
+    cursor:pointer;
+    box-shadow: 0 6px 20px rgba(43,111,240,0.35);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  button.btn:active{transform:translateY(1px) scale(0.99); box-shadow:0 3px 10px rgba(43,111,240,0.3);}
 
-        /* Sehemu ya Form na Uchaguzi */
-        .input-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
+  .result-box{
+    margin-top:14px;
+    border-top:1px solid var(--rule);
+    padding-top:12px;
+    display:none;
+  }
+  .result-box.show{display:block;}
+  .result-route{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .result-empty{
+    font-family:'Inter', sans-serif;
+    font-style:italic;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
 
-        .input-group label {
-            display: block;
-            color: #00ffcc;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            padding-left: 4px;
-        }
+  /* ===== Route number badge — signature element ===== */
+  .badge{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size:17px;
+    color:#1A1300;
+    background:linear-gradient(160deg, #FFD35C, var(--yellow));
+    border:none;
+    border-radius:10px;
+    width:46px; height:46px;
+    min-width:46px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 12px rgba(242,183,5,0.35);
+    flex-shrink:0;
+  }
+  .badge.alt{background:linear-gradient(160deg, #7FF0DE, var(--teal)); box-shadow:0 4px 12px rgba(47,230,196,0.3);}
 
-        .select-custom {
-            width: 100%;
-            padding: 15px;
-            background: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            color: #ffffff;
-            font-size: 14.5px;
-            font-weight: 500;
-            outline: none;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ffcc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            background-size: 18px;
-        }
+  .route-text{font-size:14px; line-height:1.35;}
+  .route-text .stops{font-weight:700; color:var(--ink);}
+  .route-text .via{color:var(--ink-soft); font-size:12.5px;}
+  .route-text .fare{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--teal);
+    margin-top:2px;
+  }
 
-        .select-custom:focus {
-            border-color: #00ffcc;
-            box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.15);
-        }
+  /* ===== Section headers ===== */
+  .section{margin-top:28px;}
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .section-head h2{
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    margin:0;
+    color:var(--ink);
+  }
+  .section-head .rule{
+    flex:1;
+    border-bottom:1px dashed var(--rule);
+    height:0;
+  }
 
-        /* Kitufe chenye Uhuishaji wa Hali ya Juu */
-        .btn-action {
-            background: linear-gradient(135deg, #0066ff 0%, #00d2ff 100%);
-            color: white;
-            padding: 16px;
-            border: none;
-            border-radius: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.35);
-            transition: all 0.25s ease;
-        }
+  /* ===== Zone group (departure board) ===== */
+  .zone{
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-left:4px solid var(--teal);
+    border-radius:12px;
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .zone-title{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:var(--card-alt);
+    padding:8px 12px;
+  }
+  .zone-rows{padding:6px 10px 10px;}
+  .row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 2px;
+    border-bottom:1px solid var(--rule);
+  }
+  .row:last-child{border-bottom:none;}
+  .row .badge{width:38px; height:38px; font-size:13px; border-radius:9px;}
+  .row .route-text{flex:1;}
 
-        .btn-action:active {
-            transform: scale(0.97);
-            box-shadow: 0 2px 8px rgba(0, 102, 255, 0.2);
-        }
+  /* ===== Popular chips ===== */
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:20px;
+    padding:7px 14px;
+    color:var(--ink);
+  }
 
-        /* Ruti za Haraka (Quick Badges) - Unyama Mpya! */
-        .quick-chips-title {
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 600;
-            margin: 25px 0 10px 0;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+  footer{
+    max-width:640px;
+    margin:36px auto 0;
+    padding:16px 18px 0;
+    border-top:1px solid var(--rule);
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  footer strong{color:var(--teal);}
 
-        .chips-container {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
+  /* ===== Version badge ===== */
+  .version-badge{
+    position:absolute;
+    top:16px; right:16px;
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    letter-spacing:.06em;
+    color:#1A1300;
+    background:var(--yellow);
+    border:none;
+    border-radius:12px;
+    padding:3px 9px;
+    z-index:3;
+  }
 
-        .chip {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            color: #cbd5e1;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+  /* ===== Reveal on scroll ===== */
+  .reveal{
+    opacity:0;
+    transform:translateY(14px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .reveal.in{opacity:1; transform:translateY(0);}
 
-        .chip:active {
-            background: rgba(0, 255, 204, 0.15);
-            border-color: #00ffcc;
-            color: #00ffcc;
-        }
+  /* ===== Micro-interactions ===== */
+  .zone{transition:box-shadow .2s ease, border-color .2s ease;}
+  .zone:hover{border-color:var(--teal);}
+  .row{transition:background .15s ease;}
+  .row:hover{background:rgba(47,230,196,0.07);}
+  .chip{transition:transform .15s ease, border-color .15s ease;}
+  .chip:hover{transform:translateY(-2px); border-color:var(--teal); color:var(--teal);}
+  select{transition:border-color .15s ease;}
+  select:hover{border-color:var(--teal);}
 
-        /* Sanduku la Matokeo ya Kijeshi */
-        .result-panel {
-            margin-top: 25px;
-            padding: 18px;
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.5));
-            border-left: 4px solid #00ffcc;
-            border-radius: 14px;
-            text-align: left;
-            box-sizing: border-box;
-            display: none;
-            animation: shukaChini 0.4s cubic-bezier(0.16, 1, 0.3, 1) ease-out;
-        }
+  /* ===== Skeleton loader for board while JS renders ===== */
+  .skeleton-row{
+    height:52px;
+    background:linear-gradient(90deg, var(--paper-card) 25%, var(--card-alt) 37%, var(--paper-card) 63%);
+    background-size:400% 100%;
+    animation:shimmer 1.4s ease infinite;
+    border-radius:12px;
+    margin-bottom:8px;
+  }
+  @keyframes shimmer{
+    0%{background-position:100% 0;}
+    100%{background-position:0 0;}
+  }
 
-        @keyframes shukaChini {
-            0% { opacity: 0; transform: translateY(-10px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            font-size: 13.5px;
-        }
-
-        .result-row:last-child { border: none; }
-        .result-label { color: #64748b; font-weight: 500; }
-        .result-value { color: #f1f5f9; font-weight: 600; }
-        .result-value.highlight { color: #00ffcc; }
-
-        /* Kitufe cha Menu kilichokaa Ki-developer */
-        .menu-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #00ffcc;
-            font-size: 20px;
-            cursor: pointer;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        /* Swichi ya Notification */
-        .toggle-switch {
-            position: relative; inline-block; width: 44px; height: 22px;
-        }
-        .toggle-input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #334155; transition: .4s; border-radius: 22px;
-        }
-        .toggle-slider:before {
-            position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
-        .toggle-input:checked + .toggle-slider { background: linear-gradient(45deg, #00ffcc, #0066ff); }
-        .toggle-input:checked + .toggle-slider:before { transform: translateX(22px); }
-
-        @keyframes ikizunguka { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  /* ===== Map ===== */
+  .map-box{
+    margin-top:14px;
+    border:1px solid var(--rule);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    display:none;
+  }
+  .map-box.show{display:block;}
+  .map-label{
+    background:var(--card-alt);
+    color:var(--teal);
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:8px 12px;
+  }
+  #routeMap, #pickMap{
+    height:240px;
+    width:100%;
+    filter:saturate(0.9) brightness(0.92) contrast(1.05);
+  }
+  #pickMap{height:280px; cursor:crosshair;}
+  .map-note{
+    font-family:'Inter', sans-serif;
+    font-style:italic;
+    font-size:11px;
+    color:var(--ink-soft);
+    background:var(--paper-card);
+    padding:6px 12px;
+    margin:0;
+  }
+  .leaflet-popup-content-wrapper{
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:8px;
+  }
+  .leaflet-popup-content{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:13px;
+  }
+  .leaflet-popup-tip{background:var(--card-alt);}
+</style>
 </head>
 <body>
 
-    <div class="ambient-glow"></div>
+<header class="board">
+  <span class="version-badge">v2.0</span>
+  <p class="eyebrow">Bodi ya Ruti · Dar es Salaam</p>
+  <h1 class="title">DALADALA<br>NAVIGATOR</h1>
+  <p class="tagline">Siri ya usafiri wa haraka na salama — kiganjani mwako.</p>
+  <div class="dev-credit">👨‍💻 Imetengenezwa na <strong style="color:#fff;">&nbsp;Yaasir&nbsp;</strong> · ☎ 0772282160</div>
+</header>
 
-    <button onclick="funguaMenu()" class="menu-btn">☰</button>
-
-    <div class="app-shell">
-        <div class="app-header">
-            <h1>Daladala Navigator</h1>
-            <p>Siri ya usafiri wa haraka na salama kiganjani mwako</p>
-        </div>
-
-        <div class="input-group">
-            <label>Chagua Unakokwenda</label>
-            <select id="ruti-select" class="select-custom">
-                <option value="">-- Chagua Ruti Yako --</option>
-                <option value="posta-tabata">Posta → Tabata</option>
-                <option value="mbagala-kariakoo">Mbagala → Kariakoo</option>
-                <option value="kimara-posta">Kimara → Posta (BRT)</option>
-                <option value="mwenge-kariakoo">Mwenge → Kariakoo</option>
-            </select>
-        </div>
-
-        <button onclick="anzishaLoadingNaTafuta()" class="btn-action">Tafuta Usafiri Sasa 🚌</button>
-
-        <div class="quick-chips-title">Ruti Maarufu</div>
-        <div class="chips-container">
-            <div class="chip" onclick="gusaChip('kimara-posta')">⚡ Kimara</div>
-            <div class="chip" onclick="gusaChip('posta-tabata')">🚌 Tabata</div>
-            <div class="chip" onclick="gusaChip('mbagala-kariakoo')">🔥 Mbagala</div>
-        </div>
-
-        <div id="safari-result" class="result-panel">
-            <div class="result-row">
-                <span class="result-label">📍 Safari:</span>
-                <span id="res-safari" class="result-value"></span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">🚌 Usafiri:</span>
-                <span id="res-gari" class="result-value"></span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">💰 Nauli:</span>
-                <span id="res-nauli" class="result-value highlight"></span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">🎓 Wanafunzi:</span>
-                <span id="res-wanafunzi" class="result-value">200 TZS</span>
-            </div>
-        </div>
-
-        <div style="margin-top: 25px;">
-            <a href="daladala_navigator.apk" style="color: #38bdf8; font-size: 12.5px; text-decoration: none; font-weight: 500; opacity: 0.85;">Pata App Rasmi (APK) ⬇️</a>
-        </div>
+<main>
+  <section class="panel reveal">
+    <p class="panel-label">📍 Tafuta kwa Ramani (Gusa Vituo)</p>
+    <p style="margin:0 0 10px; font-family:'Bitter',serif; font-size:12.5px; color:var(--ink-soft);">Gusa ramani mara ya kwanza kuweka <strong>Kutoka</strong>, mara ya pili kuweka <strong>Kwenda</strong> — tutakadiria kilomita na nauli papo hapo.</p>
+    <div class="map-box show" style="margin-top:0;">
+      <div class="map-label">🗺️ Gusa Kuchagua Vituo</div>
+      <div id="pickMap"></div>
+      <p class="map-note">Umbali ni wa mstari ulionyooka (si njia halisi ya barabara) — nauli ni makadirio.</p>
     </div>
-
-    <div id="side-menu" style="position: fixed; top: 0; right: -340px; width: 310px; height: 100%; background: #0b0f19; border-left: 1px solid rgba(255,255,255,0.06); box-shadow: -10px 0 40px rgba(0,0,0,0.7); z-index: 10000; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 30px 24px; box-sizing: border-box; overflow-y: auto; text-align: left;">
-        
-        <div style="margin-bottom: 35px;">
-            <button onclick="fungaMenu()" style="background: none; border: none; color: #f43f5e; font-size: 14px; cursor: pointer; font-weight: 600; padding: 0;">✕ FUNGA MENU</button>
-        </div>
-
-        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 22px; margin-bottom: 22px;">
-            <h3 style="color: #00ffcc; margin: 0; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⚙️ Mipangilio</h3>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px;">
-                <span style="color: #94a3b8; font-size: 13px;">Push Notifications</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="notif-switch" class="toggle-input">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-
-        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 22px; margin-bottom: 22px;">
-            <h3 style="color: #00ffcc; margin: 0; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">★ Favorites</h3>
-            <ul id="fav-routes-list" style="padding-left: 16px; color: #cbd5e1; line-height: 1.8; font-size: 13px; margin: 12px 0;"></ul>
-        </div>
-
-        <div>
-            <h3 style="color: #00ffcc; margin: 0; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">💬 Maoni na Ushauri</h3>
-            <div style="margin-top: 14px;">
-                <input type="text" id="comment-user" placeholder="Jina lako..." style="width: 100%; padding: 11px; margin-bottom: 8px; background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: white; box-sizing: border-box; font-size: 13px; outline: none;">
-                <textarea id="comment-text" placeholder="Andika hapa..." rows="3" style="width: 100%; padding: 11px; background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: white; box-sizing: border-box; resize: none; font-size: 13px; outline: none;"></textarea>
-                <button onclick="wasilishaMaoni()" style="background: linear-gradient(45deg, #00ffcc, #00bfff); color: #0f172a; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 6px; font-size: 13px;">Wasilisha</button>
-            </div>
-            <div style="margin-top: 15px;">
-                <div id="comments-box" style="max-height: 130px; overflow-y: auto; background: #111827; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04);"></div>
-            </div>
-        </div>
+    <div class="result-box" id="pickResultBox">
+      <div id="pickResultContent"></div>
     </div>
+    <button class="btn" style="margin-top:10px; background:var(--paper-card);" onclick="resetPickMap()">↺ Anza Upya</button>
+  </section>
 
-    <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(8, 12, 20, 0.96); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #00ffcc; backdrop-filter: blur(6px);">
-        <div style="border: 4px solid rgba(0, 255, 220, 0.1); border-top: 4px solid #00ffcc; border-radius: 50%; width: 44px; height: 44px; animation: ikizunguka 0.8s linear infinite; box-shadow: 0 0 15px rgba(0,255,204,0.2);"></div>
-        <p style="margin-top: 20px; color: #94a3b8; font-size: 14.5px; font-weight: 500; letter-spacing: 0.3px;">Inachakata mifumo ya ruti...</p>
+  <section class="panel">
+    <p class="panel-label">Tafuta Ruti Yako</p>
+    <div class="field">
+      <label for="from">Kutoka</label>
+      <select id="from"></select>
     </div>
+    <div class="field">
+      <label for="to">Kwenda</label>
+      <select id="to"></select>
+    </div>
+    <button class="btn" onclick="searchRoute()">Tafuta Usafiri Sasa 🚌</button>
 
-    <footer style="margin-top: 25px; padding: 10px 0; color: #475569; font-size: 11px; z-index: 5;">
-        © 2026 Created by Yaasir | Tech Support: 0772282160
-    </footer>
+    <div class="result-box" id="resultBox">
+      <div id="resultContent"></div>
+      <div class="map-box" id="mapBox">
+        <div class="map-label">🗺️ Ramani ya Njia</div>
+        <div id="routeMap"></div>
+        <p class="map-note">Alama za vituo ni za makadirio — si sahihi kwa asilimia 100.</p>
+      </div>
+    </div>
+  </section>
 
-    <script>
-        function funguaMenu() { document.getElementById('side-menu').style.right = '0'; }
-        function fungaMenu() { document.getElementById('side-menu').style.right = '-340px'; }
+  <section class="section panel reveal">
+    <p class="panel-label">💰 Nauli Rasmi (LATRA — inatumika tangu Mei 1, 2026)</p>
+    <table style="width:100%; border-collapse:collapse; font-family:'PT Sans',sans-serif; font-size:13.5px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--ink);">
+          <th style="text-align:left; padding:6px 4px;">Umbali</th>
+          <th style="text-align:right; padding:6px 4px;">Nauli</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Hadi km 10</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">700 TZS</td></tr>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Km 11–20</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">900 TZS</td></tr>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Km 21–35</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">1,200 TZS</td></tr>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Km 36–40</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">1,500 TZS</td></tr>
+        <tr><td style="padding:6px 4px;">Wanafunzi (umbali wowote)</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">200 TZS</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0; font-family:'Bitter',serif; font-style:italic; font-size:12.5px; color:var(--ink-soft);">Mwendokasi (BRT): 650–1000 TZS kulingana na safari.</p>
+  </section>
 
-        // Mfumo wa kuruhusu chips ziguse na kuanza search papo hapo
-        function gusaChip(rutiId) {
-            const mchaguo = document.getElementById('ruti-select');
-            if(mchaguo) {
-                mchaguo.value = rutiId;
-                anzishaLoadingNaTafuta();
-            }
-        }
+  <section class="section panel reveal">
+    <p class="panel-label">💬 Maoni na Ushauri</p>
+    <textarea rows="3" placeholder="Andika maoni yako kuhusu ruti au stesheni..." style="width:100%; font-family:'PT Sans',sans-serif; font-size:14px; padding:10px; border:2px solid var(--ink); border-radius:3px; resize:vertical;"></textarea>
+    <button class="btn" style="margin-top:10px;">Wasilisha</button>
+  </section>
+</main>
 
-        // Injini Kuu ya usafiri na nauli zote za Bongo
-        function anzishaLoadingNaTafuta() {
-            const mchaguo = document.getElementById('ruti-select').value;
-            if (!mchaguo) { alert("Tafadhali chagua ruti yako kwanza!"); return; }
+<footer>
+  <p>© 2026 Created by <strong>Yaasir</strong> · Tech Support: 0772282160</p>
+  <p>App Core Designed by Senior Developer Yaasir © 2026</p>
+</footer>
 
-            var loader = document.getElementById('loading-screen');
-            if(loader) loader.style.display = 'flex';
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  // Real Dar es Salaam daladala stations grouped by zone, with route numbers
+  const zones = [
+    {
+      name: "Kanda ya Magharibi (Kimara · Ubungo · Mwenge)",
+      routes: [
+        {num:"53", from:"Kimara Mwisho", to:"Posta", via:"Morogoro Rd", fare:"900 TZS"},
+        {num:"1", from:"Kimara", to:"Kivukoni", via:"Mwendokasi (BRT)", fare:"1000 TZS"},
+        {num:"2", from:"Ubungo", to:"Kivukoni", via:"Mwendokasi (BRT)", fare:"900 TZS"},
+        {num:"65", from:"Kariakoo", to:"Makumbusho", via:"", fare:"700 TZS"},
+        {num:"75", from:"Ubungo", to:"Masaki", via:"", fare:"900 TZS"},
+        {num:"64", from:"Ubungo", to:"Machimbo", via:"", fare:"700 TZS"},
+        {num:"MW1", from:"Mwenge", to:"Tabata", via:"", fare:"900 TZS"},
+        {num:"MW2", from:"Mwenge", to:"Sinza", via:"", fare:"700 TZS"},
+      ]
+    },
+    {
+      name: "Kanda ya Kati (Posta · Kariakoo · Kivukoni · Gerezani)",
+      routes: [
+        {num:"66", from:"Kivukoni/Posta", to:"Makumbusho", via:"Mwanyamala", fare:"900 TZS"},
+        {num:"71", from:"Stesheni", to:"Makumbusho", via:"", fare:"700 TZS"},
+        {num:"74", from:"Kariakoo", to:"Masaki", via:"", fare:"700 TZS"},
+        {num:"56", from:"Mabibo Mwisho", to:"Mnazi Mmoja", via:"Kigogo", fare:"700 TZS"},
+        {num:"57", from:"Mabibo Mwisho", to:"Muhimbili", via:"Kigogo", fare:"700 TZS"},
+        {num:"G1", from:"Gerezani", to:"Buguruni", via:"", fare:"700 TZS"},
+        {num:"G2", from:"Posta", to:"Tabata", via:"", fare:"900 TZS"},
+      ]
+    },
+    {
+      name: "Kanda ya Kusini (Mbagala · Buguruni · Vingunguti · Segerea)",
+      routes: [
+        {num:"77", from:"Kariakoo", to:"Mbagala Rangi Tatu", via:"", fare:"900 TZS"},
+        {num:"78", from:"Kawe", to:"Mbagala Rangi Tatu", via:"", fare:"1200 TZS"},
+        {num:"82", from:"Makumbusho", to:"Mbagala Rangi Tatu", via:"", fare:"1200 TZS"},
+        {num:"84", from:"Mbagala Rangi Tatu", to:"Mvuti", via:"", fare:"700 TZS"},
+        {num:"73", from:"Buguruni", to:"Manzese", via:"", fare:"700 TZS"},
+        {num:"V1", from:"Vingunguti", to:"Kawe", via:"", fare:"1200 TZS"},
+        {num:"V2", from:"Vingunguti", to:"Mbezi", via:"", fare:"900 TZS"},
+        {num:"S1", from:"Segerea", to:"Mwenge", via:"", fare:"900 TZS"},
+        {num:"S2", from:"Gongo la Mboto", to:"Posta", via:"", fare:"1200 TZS"},
+      ]
+    },
+    {
+      name: "Kanda ya Kaskazini (Kawe · Tegeta · Kunduchi · Mbezi)",
+      routes: [
+        {num:"69", from:"Makumbusho", to:"Muhimbili", via:"Kawawa Rd", fare:"900 TZS"},
+        {num:"K1", from:"Kunduchi", to:"Posta", via:"", fare:"1200 TZS"},
+        {num:"K2", from:"Kunduchi", to:"Makumbusho", via:"", fare:"1200 TZS"},
+        {num:"M1", from:"Mburahati", to:"Muhimbili", via:"", fare:"700 TZS"},
+        {num:"M2", from:"Kivukoni", to:"Mburahati", via:"", fare:"900 TZS"},
+        {num:"MK", from:"Mbagala Kuu", to:"Mwenge", via:"", fare:"1200 TZS"},
+        {num:"T1", from:"Tegeta", to:"Posta", via:"Bagamoyo Rd", fare:"1200 TZS"},
+        {num:"T2", from:"Bunju", to:"Mwenge", via:"", fare:"1200 TZS"},
+      ]
+    }
+  ];
 
-            setTimeout(function() {
-                if(loader) loader.style.display = 'none';
-                
-                let safari = "", gari = "", nauli = "";
+  // Flatten stations for dropdowns
+  const stationSet = new Set();
+  zones.forEach(z => z.routes.forEach(r => { stationSet.add(r.from); stationSet.add(r.to); }));
+  const stations = Array.from(stationSet).sort();
 
-                if (mchaguo === "posta-tabata") {
-                    safari = "Posta kwenda Tabata"; gari = "Daladala (Coaster / Eicher)"; nauli = "600 TZS";
-                } else if (mchaguo === "mbagala-kariakoo") {
-                    safari = "Mbagala kwenda Kariakoo"; gari = "Mwendokasi / Daladala ya Kawaida"; nauli = "700 TZS";
-                } else if (mchaguo === "kimara-posta") {
-                    safari = "Kimara kwenda Posta"; gari = "Mwendokasi BRT (Express)"; nauli = "750 TZS";
-                } else if (mchaguo === "mwenge-kariakoo") {
-                    safari = "Mwenge kwenda Kariakoo"; gari = "Daladala ya Coaster au Hiace"; nauli = "600 TZS";
-                }
+  const fromSel = document.getElementById('from');
+  const toSel = document.getElementById('to');
+  stations.forEach(s => {
+    fromSel.innerHTML += `<option value="${s}">${s}</option>`;
+    toSel.innerHTML += `<option value="${s}">${s}</option>`;
+  });
+  toSel.selectedIndex = 1;
 
-                document.getElementById('res-safari').innerText = safari;
-                document.getElementById('res-gari').innerText = gari;
-                document.getElementById('res-nauli').innerText = nauli;
-                document.getElementById('safari-result').style.display = 'block';
+  // Approximate coordinates for map pins (illustrative, not GPS-precise)
+  const coords = {
+    "Kimara Mwisho":[-6.7833,39.1500], "Kimara":[-6.7833,39.1500],
+    "Posta":[-6.8161,39.2889], "Kivukoni":[-6.8180,39.2938], "Kivukoni/Posta":[-6.8170,39.2910],
+    "Ubungo":[-6.7756,39.2306], "Kariakoo":[-6.8225,39.2775], "Makumbusho":[-6.8036,39.2489],
+    "Masaki":[-6.7550,39.2836], "Machimbo":[-6.7828,39.2181], "Mwenge":[-6.7708,39.2461],
+    "Tabata":[-6.8228,39.2647], "Sinza":[-6.7714,39.2306], "Stesheni":[-6.8175,39.2894],
+    "Mabibo Mwisho":[-6.7961,39.2183], "Mnazi Mmoja":[-6.8175,39.2822], "Muhimbili":[-6.8064,39.2872],
+    "Gerezani":[-6.8203,39.2839], "Buguruni":[-6.8267,39.2611], "Mbagala Rangi Tatu":[-6.8974,39.2528],
+    "Kawe":[-6.7442,39.2531], "Mvuti":[-6.9139,39.2611], "Manzese":[-6.7994,39.2439],
+    "Vingunguti":[-6.8386,39.2494], "Mbezi":[-6.7500,39.1889], "Segerea":[-6.8153,39.2364],
+    "Gongo la Mboto":[-6.8494,39.2833], "Mburahati":[-6.8064,39.2367], "Mbagala Kuu":[-6.8900,39.2400],
+    "Tegeta":[-6.6853,39.2231], "Bunju":[-6.6167,39.1667], "Kunduchi":[-6.6597,39.2115]
+  };
 
-            }, 1400);
-        }
+  // ===== Bolt-style tap-to-pick map =====
+  function distanceKm(a, b){
+    const R = 6371;
+    const dLat = (b[0]-a[0]) * Math.PI/180;
+    const dLon = (b[1]-a[1]) * Math.PI/180;
+    const lat1 = a[0] * Math.PI/180, lat2 = b[0] * Math.PI/180;
+    const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+  }
+  function fareForDistance(km){
+    if(km <= 10) return "700 TZS";
+    if(km <= 20) return "900 TZS";
+    if(km <= 35) return "1,200 TZS";
+    if(km <= 40) return "1,500 TZS";
+    return "Zaidi ya km 40 — uliza kondakta";
+  }
 
-        // Notification Logic
-        const notifSwitch = document.getElementById('notif-switch');
-        if (localStorage.getItem('daladala_notif') === 'granted' && notifSwitch) { notifSwitch.checked = true; }
-        if(notifSwitch) {
-            notifSwitch.addEventListener('change', function() {
-                if (this.checked) {
-                    if (!("Notification" in window)) { alert("Mfumo huu haukubali notifications."); this.checked = false; return; }
-                    Notification.requestPermission().then(function(p) {
-                        if (p === "granted") { localStorage.setItem('daladala_notif', 'granted'); alert("Umeruhusu taarifa kikamilifu!"); }
-                        else { localStorage.setItem('daladala_notif', 'denied'); notifSwitch.checked = false; }
-                    });
-                } else { localStorage.setItem('daladala_notif', 'disabled'); }
-            });
-        }
+  const pickMap = L.map('pickMap', {zoomControl:false, attributionControl:false}).setView([-6.8, 39.28], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18}).addTo(pickMap);
+  setTimeout(() => pickMap.invalidateSize(), 200);
 
-        // Favorites Storage Logic
-        function pakiaFavorites() {
-            const list = document.getElementById('fav-routes-list');
-            if(!list) return;
-            let favs = JSON.parse(localStorage.getItem('daladala_favs')) || ["Kimara - Posta", "Mwenge - Kariakoo"];
-            list.innerHTML = favs.map(function(r) { return "<li>🚌 " + r + "</li>"; }).join('');
-        }
+  let pointA = null, pointB = null, markerA = null, markerB = null, pickLine = null;
+  const iconA = L.divIcon({html:'🟢', className:'', iconSize:[22,22]});
+  const iconB = L.divIcon({html:'🔴', className:'', iconSize:[22,22]});
 
-        // Comments System Logic
-        function pakiaMaoni() {
-            const box = document.getElementById('comments-box');
-            if(!box) return;
-            let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [
-                { jina: "Yaasir", ujumbe: "Karibu kwenye Daladala Navigator! Mawasiliano: 0772282160" }
-            ];
-            box.innerHTML = maoni.map(function(m) { 
-                return '<div style="border-bottom:1px solid rgba(255,255,255,0.04); padding:7px 0; font-size:12px; color:#94a3b8;"><strong style="color:#00ffcc;">' + m.jina + ':</strong> ' + m.ujumbe + '</div>'; 
-            }).reverse().join('');
-        }
+  pickMap.on('click', function(e){
+    const latlng = [e.latlng.lat, e.latlng.lng];
+    if(!pointA){
+      pointA = latlng;
+      markerA = L.marker(latlng, {icon:iconA}).addTo(pickMap).bindPopup('Kutoka').openPopup();
+    } else if(!pointB){
+      pointB = latlng;
+      markerB = L.marker(latlng, {icon:iconB}).addTo(pickMap).bindPopup('Kwenda').openPopup();
+      pickLine = L.polyline([pointA, pointB], {color:'#7A2E2E', weight:4, dashArray:'6 6'}).addTo(pickMap);
+      pickMap.fitBounds(L.latLngBounds([pointA, pointB]), {padding:[30,30]});
 
-        function wasilishaMaoni() {
-            const jina = document.getElementById('comment-user');
-            const txt = document.getElementById('comment-text');
-            if (!jina || !txt || !jina.value.trim() || !txt.value.trim()) { alert("Tafadhali jaza nafasi zote mbili."); return; }
-            let maoni = JSON.parse(localStorage.getItem('daladala_comments')) || [];
-            maoni.push({ jina: jina.value.trim(), ujumbe: txt.value.trim() });
-            localStorage.setItem('daladala_comments', JSON.stringify(maoni));
-            jina.value = ""; txt.value = ""; pakiaMaoni();
-        }
+      const km = distanceKm(pointA, pointB);
+      const box = document.getElementById('pickResultBox');
+      const content = document.getElementById('pickResultContent');
+      box.classList.add('show');
+      content.innerHTML = `
+        <div class="result-route">
+          <div class="badge">${km.toFixed(1)}<span style="font-size:9px;">km</span></div>
+          <div class="route-text">
+            <div class="stops">Umbali: ${km.toFixed(1)} km</div>
+            <div class="fare">Nauli inayokadiriwa: ${fareForDistance(km)}</div>
+          </div>
+        </div>
+      `;
+    }
+    // 3rd tap onward does nothing until reset
+  });
 
-        pakiaFavorites(); pakiaMaoni();
-    </script>
+  function resetPickMap(){
+    if(markerA) pickMap.removeLayer(markerA);
+    if(markerB) pickMap.removeLayer(markerB);
+    if(pickLine) pickMap.removeLayer(pickLine);
+    pointA = pointB = markerA = markerB = pickLine = null;
+    document.getElementById('pickResultBox').classList.remove('show');
+    document.getElementById('pickResultContent').innerHTML = '';
+    pickMap.setView([-6.8, 39.28], 12);
+  }
+
+  let routeMap = null, routeLayer = null;
+  function drawMap(from, to){
+    const mapBox = document.getElementById('mapBox');
+    const a = coords[from], b = coords[to];
+    if(!a || !b){ mapBox.classList.remove('show'); return; }
+    mapBox.classList.add('show');
+
+    if(!routeMap){
+      routeMap = L.map('routeMap', {zoomControl:false, attributionControl:false});
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18}).addTo(routeMap);
+    }
+    if(routeLayer){ routeMap.removeLayer(routeLayer); }
+
+    const busIcon = L.divIcon({html:'🚌', className:'', iconSize:[24,24]});
+    const m1 = L.marker(a, {icon:busIcon}).bindPopup(from);
+    const m2 = L.marker(b, {icon:busIcon}).bindPopup(to);
+    const line = L.polyline([a,b], {color:'#7A2E2E', weight:4, dashArray:'6 6'});
+    routeLayer = L.layerGroup([m1, m2, line]).addTo(routeMap);
+    routeMap.fitBounds(L.latLngBounds([a,b]), {padding:[30,30]});
+    setTimeout(() => routeMap.invalidateSize(), 150);
+  }
+
+  function searchRoute(){
+    const from = fromSel.value, to = toSel.value;
+    const box = document.getElementById('resultBox');
+    const content = document.getElementById('resultContent');
+    box.classList.add('show');
+
+    if(from === to){
+      content.innerHTML = `<p class="result-empty">Chagua vituo viwili tofauti.</p>`;
+      document.getElementById('mapBox').classList.remove('show');
+      return;
+    }
+
+    let matches = [];
+    zones.forEach(z => z.routes.forEach(r => {
+      if ((r.from===from && r.to===to) || (r.from===to && r.to===from)) matches.push(r);
+    }));
+
+    if(matches.length > 0){
+      content.innerHTML = matches.map(r => `
+        <div class="result-route">
+          <div class="badge">${r.num}</div>
+          <div class="route-text">
+            <div class="stops">${r.from} → ${r.to}</div>
+            ${r.via ? `<div class="via">kupitia ${r.via}</div>` : ""}
+            <div class="fare">Nauli: ${r.fare}</div>
+          </div>
+        </div>
+      `).join("");
+      drawMap(from, to);
+      return;
+    }
+
+    // Fallback: no listed route number, but estimate by straight-line distance
+    const a = coords[from], b = coords[to];
+    if(a && b){
+      const km = distanceKm(a, b);
+      content.innerHTML = `
+        <p class="result-empty" style="margin-bottom:8px;">Hakuna namba maalum ya ruti iliyoorodheshwa kati ya vituo hivi, lakini makadirio ni:</p>
+        <div class="result-route">
+          <div class="badge">${km.toFixed(1)}<span style="font-size:9px;">km</span></div>
+          <div class="route-text">
+            <div class="stops">${from} → ${to}</div>
+            <div class="fare">Nauli inayokadiriwa: ${fareForDistance(km)}</div>
+          </div>
+        </div>
+      `;
+      drawMap(from, to);
+    } else {
+      content.innerHTML = `<p class="result-empty">Hakuna taarifa ya kutosha kati ya "${from}" na "${to}" kwa sasa.</p>`;
+      document.getElementById('mapBox').classList.remove('show');
+    }
+  }
+
+  // Scroll-reveal for sections
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+  }
+
+  // — Developer signature —
+  console.log(
+    "%cDaladala Navigator %cv2.0",
+    "color:#2FE6C4; font-weight:bold; font-size:14px;",
+    "color:#22C1F0; font-weight:bold; font-size:12px;"
+  );
+  console.log("Imetengenezwa na Yaasir · Tech Support: 0772282160");
+</script>
 </body>
 </html>
-<div style="text-align: center; color: #00ffcc; font-weight: bold; margin-top: 20px; font-family: sans-serif; font-size: 14px;">
-    App Core Designed by Senior Developer Yaasir © 2026
-</div>
-
