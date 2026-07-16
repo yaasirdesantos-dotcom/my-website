@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Daladala Navigator — Bodi ya Ruti</title>
+<meta name="description" content="Tafuta ruti za daladala Dar es Salaam kwa haraka — vituo, nauli rasmi za LATRA, na bodi kamili ya ruti kwa kanda.">
+<meta name="theme-color" content="#0A0F1C">
+<meta property="og:title" content="Daladala Navigator">
+<meta property="og:description" content="Siri ya usafiri wa haraka na salama — kiganjani mwako.">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+  :root{
+    --paper:#0A0F1C;
+    --paper-card:#121A2B;
+    --card-alt:#16213A;
+    --ink:#E9EEF7;
+    --ink-soft:#8B98B4;
+    --yellow:#F2B705;
+    --yellow-deep:#C98A0D;
+    --green:#0E1626;
+    --oxblood:#FF6B6B;
+    --rule:#22304C;
+    --teal:#2FE6C4;
+    --blue1:#2B6FF0;
+    --blue2:#22C1F0;
+    --shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation:none !important; transition:none !important;}
+  }
+  body{
+    background:
+      radial-gradient(ellipse at top left, rgba(47,230,196,0.10), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(43,111,240,0.10), transparent 55%),
+      var(--paper);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  a{color:inherit;}
+
+  /* ===== Header ===== */
+  header.board{
+    background:linear-gradient(180deg, #0E1626 0%, #0A0F1C 100%);
+    color:var(--ink);
+    padding:26px 18px 30px;
+    border-bottom:1px solid var(--rule);
+    position:relative;
+    overflow:hidden;
+  }
+  header.board::after{
+    content:"";
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 80% 0%, rgba(47,230,196,0.12), transparent 45%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--teal);
+    margin:0 0 8px;
+  }
+  h1.title{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size:clamp(28px, 9vw, 40px);
+    line-height:1.08;
+    margin:0 0 8px;
+    letter-spacing:-.02em;
+    background:linear-gradient(90deg, var(--teal), var(--blue2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .tagline{
+    font-family:'Inter', sans-serif;
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:0;
+    max-width:32ch;
+  }
+  .dev-credit{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:16px;
+    background:rgba(47,230,196,0.08);
+    border:1px solid rgba(47,230,196,0.35);
+    border-radius:20px;
+    padding:6px 14px;
+    font-family:'Space Mono', monospace;
+    font-size:11.5px;
+    color:var(--teal);
+  }
+  .install-btn{
+    display:block;
+    margin-top:14px;
+    background:linear-gradient(90deg, var(--blue1), var(--blue2));
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:11px 18px;
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    box-shadow:0 6px 20px rgba(43,111,240,0.35);
+  }
+
+  /* ===== Tabs ===== */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+    background:var(--card-alt);
+    border-radius:12px;
+    padding:4px;
+  }
+  .tab-btn{
+    flex:1;
+    padding:10px 8px;
+    border:none;
+    border-radius:9px;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab-btn.active{
+    background:linear-gradient(90deg, var(--blue1), var(--blue2));
+    color:#fff;
+  }
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ===== Fullscreen map overlay ===== */
+  .map-fullscreen{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:var(--paper);
+    display:none;
+    flex-direction:column;
+  }
+  .map-fullscreen.open{display:flex;}
+  .map-fs-topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px;
+    background:var(--paper-card);
+    border-bottom:1px solid var(--rule);
+    position:relative;
+    z-index:2;
+  }
+  .map-fs-search-wrap{flex:1; position:relative;}
+  .map-fs-search{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--rule);
+    background:var(--card-alt);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+  }
+  .map-fs-search:focus{outline:2px solid var(--teal); outline-offset:1px;}
+  .station-suggestions{
+    display:none;
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0; right:0;
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    overflow:hidden;
+    max-height:260px;
+    overflow-y:auto;
+    box-shadow:var(--shadow);
+    z-index:5;
+  }
+  .station-suggestions.show{display:block;}
+  .suggestion-item{
+    padding:12px 14px;
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    border-bottom:1px solid var(--rule);
+    cursor:pointer;
+  }
+  .suggestion-item:last-child{border-bottom:none;}
+  .suggestion-item:hover, .suggestion-item:active{background:rgba(47,230,196,0.1);}
+  .suggestion-empty{padding:12px 14px; font-size:13px; color:var(--ink-soft); font-style:italic;}
+  .map-fs-close{
+    width:42px; height:42px;
+    border-radius:10px;
+    border:1.5px solid var(--rule);
+    background:var(--card-alt);
+    color:var(--ink);
+    font-size:18px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .map-fs-canvas{flex:1; width:100%;}
+  .map-fs-bottom{
+    background:var(--paper-card);
+    border-top:1px solid var(--rule);
+    padding:14px;
+    max-height:38vh;
+    overflow-y:auto;
+  }
+
+  /* ===== Panels ===== */
+  main{max-width:640px; margin:0 auto; padding:0 16px;}
+
+  .panel{
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    margin-top:-14px;
+    padding:20px;
+    position:relative;
+    z-index:2;
+  }
+  .panel-label{
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--teal);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel-label::before{content:"🎫"; font-size:16px;}
+
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  select, button.btn{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    padding:13px 10px;
+    border-radius:10px;
+  }
+  select{
+    border:1.5px solid var(--rule);
+    background:var(--card-alt);
+    color:var(--ink);
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--teal) 50%), linear-gradient(135deg, var(--teal) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 12px) center;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+  }
+  select:focus, button.btn:focus{outline:2px solid var(--teal); outline-offset:2px;}
+
+  button.btn{
+    border:none;
+    background:linear-gradient(90deg, var(--blue1), var(--blue2));
+    color:#fff;
+    font-weight:700;
+    letter-spacing:.02em;
+    cursor:pointer;
+    box-shadow: 0 6px 20px rgba(43,111,240,0.35);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  button.btn:active{transform:translateY(1px) scale(0.99); box-shadow:0 3px 10px rgba(43,111,240,0.3);}
+
+  .result-box{
+    margin-top:14px;
+    border-top:1px solid var(--rule);
+    padding-top:12px;
+    display:none;
+  }
+  .result-box.show{display:block;}
+  .result-route{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .result-empty{
+    font-family:'Inter', sans-serif;
+    font-style:italic;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  /* ===== Route number badge — signature element ===== */
+  .badge{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size:17px;
+    color:#1A1300;
+    background:linear-gradient(160deg, #FFD35C, var(--yellow));
+    border:none;
+    border-radius:10px;
+    width:46px; height:46px;
+    min-width:46px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 12px rgba(242,183,5,0.35);
+    flex-shrink:0;
+  }
+  .badge.alt{background:linear-gradient(160deg, #7FF0DE, var(--teal)); box-shadow:0 4px 12px rgba(47,230,196,0.3);}
+
+  .route-text{font-size:14px; line-height:1.35;}
+  .route-text .stops{font-weight:700; color:var(--ink);}
+  .route-text .via{color:var(--ink-soft); font-size:12.5px;}
+  .route-text .fare{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--teal);
+    margin-top:2px;
+  }
+
+  /* ===== Section headers ===== */
+  .section{margin-top:28px;}
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .section-head h2{
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    margin:0;
+    color:var(--ink);
+  }
+  .section-head .rule{
+    flex:1;
+    border-bottom:1px dashed var(--rule);
+    height:0;
+  }
+
+  /* ===== Zone group (departure board) ===== */
+  .zone{
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-left:4px solid var(--teal);
+    border-radius:12px;
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .zone-title{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:var(--card-alt);
+    padding:8px 12px;
+  }
+  .zone-rows{padding:6px 10px 10px;}
+  .row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 2px;
+    border-bottom:1px solid var(--rule);
+  }
+  .row:last-child{border-bottom:none;}
+  .row .badge{width:38px; height:38px; font-size:13px; border-radius:9px;}
+  .row .route-text{flex:1;}
+
+  /* ===== Popular chips ===== */
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:20px;
+    padding:7px 14px;
+    color:var(--ink);
+  }
+
+  footer{
+    max-width:640px;
+    margin:36px auto 0;
+    padding:16px 18px 0;
+    border-top:1px solid var(--rule);
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  footer strong{color:var(--teal);}
+
+  /* ===== Version badge ===== */
+  .version-badge{
+    position:absolute;
+    top:16px; right:16px;
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    letter-spacing:.06em;
+    color:#1A1300;
+    background:var(--yellow);
+    border:none;
+    border-radius:12px;
+    padding:3px 9px;
+    z-index:3;
+  }
+
+  /* ===== Reveal on scroll ===== */
+  .reveal{
+    opacity:0;
+    transform:translateY(14px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* ===== Micro-interactions ===== */
+  .zone{transition:box-shadow .2s ease, border-color .2s ease;}
+  .zone:hover{border-color:var(--teal);}
+  .row{transition:background .15s ease;}
+  .row:hover{background:rgba(47,230,196,0.07);}
+  .chip{transition:transform .15s ease, border-color .15s ease;}
+  .chip:hover{transform:translateY(-2px); border-color:var(--teal); color:var(--teal);}
+  select{transition:border-color .15s ease;}
+  select:hover{border-color:var(--teal);}
+
+  /* ===== Skeleton loader for board while JS renders ===== */
+  .skeleton-row{
+    height:52px;
+    background:linear-gradient(90deg, var(--paper-card) 25%, var(--card-alt) 37%, var(--paper-card) 63%);
+    background-size:400% 100%;
+    animation:shimmer 1.4s ease infinite;
+    border-radius:12px;
+    margin-bottom:8px;
+  }
+  @keyframes shimmer{
+    0%{background-position:100% 0;}
+    100%{background-position:0 0;}
+  }
+
+  /* ===== Map ===== */
+  .map-box{
+    margin-top:14px;
+    border:1px solid var(--rule);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    display:none;
+  }
+  .map-box.show{display:block;}
+  .map-label{
+    background:var(--card-alt);
+    color:var(--teal);
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:8px 12px;
+  }
+  #routeMap{
+    height:240px;
+    width:100%;
+  }
+  #pickMap{width:100%; cursor:crosshair;}
+  .map-note{
+    font-family:'Inter', sans-serif;
+    font-style:italic;
+    font-size:11px;
+    color:var(--ink-soft);
+    background:var(--paper-card);
+    padding:6px 12px;
+    margin:0;
+  }
+  .leaflet-popup-content-wrapper{
+    background:var(--card-alt);
+    border:1px solid var(--rule);
+    border-radius:8px;
+  }
+  .leaflet-popup-content{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:13px;
+  }
+  .leaflet-popup-tip{background:var(--card-alt);}
+</style>
+</head>
+<body>
+
+<header class="board">
+  <span class="version-badge">v2.0</span>
+  <p class="eyebrow">Bodi ya Ruti · Dar es Salaam</p>
+  <h1 class="title">DALADALA<br>NAVIGATOR</h1>
+  <p class="tagline">Siri ya usafiri wa haraka na salama — kiganjani mwako.</p>
+  <div class="dev-credit">👨‍💻 Imetengenezwa na <strong style="color:#fff;">&nbsp;Yaasir&nbsp;</strong> · ☎ 0772282160</div>
+  <button id="installBtn" class="install-btn" onclick="installApp()" style="display:none;">⬇️ Sakinisha App</button>
+</header>
+
+<main>
+  <section class="panel reveal">
+    <p class="panel-label">Tafuta Usafiri</p>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabVituoBtn" onclick="switchTab('vituo')">📋 Vituo</button>
+      <button class="tab-btn" id="tabRamaniBtn" onclick="openMapFullscreen()">🗺️ Ramani</button>
+    </div>
+
+    <div id="tabVituo" class="tab-panel active">
+      <div class="field">
+        <label for="from">Kutoka</label>
+        <select id="from"></select>
+      </div>
+      <div class="field">
+        <label for="to">Kwenda</label>
+        <select id="to"></select>
+      </div>
+      <button class="btn" onclick="searchRoute()">Tafuta Usafiri Sasa 🚌</button>
+
+      <div class="result-box" id="resultBox">
+        <div id="resultContent"></div>
+        <div class="map-box" id="mapBox">
+          <div class="map-label">🗺️ Ramani ya Njia</div>
+          <div id="routeMap"></div>
+          <p class="map-note">Alama za vituo ni za makadirio — si sahihi kwa asilimia 100.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="tabRamani" class="tab-panel">
+      <p style="margin:0 0 12px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink-soft);">Ramani inafunguka skrini nzima ili uone vituo kwa urahisi zaidi.</p>
+      <button class="btn" onclick="openMapFullscreen()">🗺️ Fungua Ramani Kamili</button>
+    </div>
+  </section>
+
+  <section class="section panel reveal">
+    <p class="panel-label">💰 Nauli Rasmi (LATRA — inatumika tangu Mei 1, 2026)</p>
+    <table style="width:100%; border-collapse:collapse; font-family:'PT Sans',sans-serif; font-size:13.5px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--ink);">
+          <th style="text-align:left; padding:6px 4px;">Umbali</th>
+          <th style="text-align:right; padding:6px 4px;">Nauli</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Hadi km 10</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">700 TZS</td></tr>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Km 11–20</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">900 TZS</td></tr>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Km 21–35</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">1,200 TZS</td></tr>
+        <tr style="border-bottom:1px dashed var(--rule);"><td style="padding:6px 4px;">Km 36–40</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">1,500 TZS</td></tr>
+        <tr><td style="padding:6px 4px;">Wanafunzi (umbali wowote)</td><td style="text-align:right; padding:6px 4px; font-family:'Space Mono',monospace;">200 TZS</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0; font-family:'Bitter',serif; font-style:italic; font-size:12.5px; color:var(--ink-soft);">Mwendokasi (BRT): 650–1000 TZS kulingana na safari.</p>
+  </section>
+
+  <section class="section panel reveal">
+    <p class="panel-label">💬 Maoni na Ushauri</p>
+    <textarea rows="3" placeholder="Andika maoni yako kuhusu ruti au stesheni..." style="width:100%; font-family:'PT Sans',sans-serif; font-size:14px; padding:10px; border:2px solid var(--ink); border-radius:3px; resize:vertical;"></textarea>
+    <button class="btn" style="margin-top:10px;">Wasilisha</button>
+  </section>
+</main>
+
+<div id="mapFullscreen" class="map-fullscreen">
+  <div class="map-fs-topbar">
+    <div class="map-fs-search-wrap">
+      <input type="text" id="mapSearchInput" class="map-fs-search" placeholder="🔍 Tafuta kituo (mf. Mwenge, Posta)..." oninput="filterStationSuggestions()" onfocus="filterStationSuggestions()" onkeydown="if(event.key==='Enter'){ selectFirstSuggestion(); }">
+      <div id="stationSuggestions" class="station-suggestions"></div>
+    </div>
+    <button class="map-fs-close" onclick="closeMapFullscreen()">✕</button>
+  </div>
+  <div id="pickMap" class="map-fs-canvas"></div>
+  <div class="map-fs-bottom">
+    <p class="map-note" style="margin:0 0 8px;">Gusa ramani mara ya kwanza kuweka <strong>Kutoka</strong>, mara ya pili kuweka <strong>Kwenda</strong> — au tumia search hapo juu.</p>
+    <div class="result-box" id="pickResultBox"><div id="pickResultContent"></div></div>
+    <button class="btn" style="margin-top:8px; background:var(--card-alt);" onclick="resetPickMap()">↺ Anza Upya</button>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Created by <strong>Yaasir</strong> · Tech Support: 0772282160</p>
+  <p>App Core Designed by Senior Developer Yaasir © 2026</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  // Real Dar es Salaam daladala stations grouped by zone, with route numbers
+  const zones = [
+    {
+      name: "Kanda ya Magharibi (Kimara · Ubungo · Mwenge)",
+      routes: [
+        {num:"53", from:"Kimara Mwisho", to:"Posta", via:"Morogoro Rd", fare:"900 TZS"},
+        {num:"1", from:"Kimara", to:"Kivukoni", via:"Mwendokasi (BRT)", fare:"1000 TZS"},
+        {num:"2", from:"Ubungo", to:"Kivukoni", via:"Mwendokasi (BRT)", fare:"900 TZS"},
+        {num:"65", from:"Kariakoo", to:"Makumbusho", via:"", fare:"700 TZS"},
+        {num:"75", from:"Ubungo", to:"Masaki", via:"", fare:"900 TZS"},
+        {num:"64", from:"Ubungo", to:"Machimbo", via:"", fare:"700 TZS"},
+        {num:"MW1", from:"Mwenge", to:"Tabata", via:"", fare:"900 TZS"},
+        {num:"MW2", from:"Mwenge", to:"Sinza", via:"", fare:"700 TZS"},
+      ]
+    },
+    {
+      name: "Kanda ya Kati (Posta · Kariakoo · Kivukoni · Gerezani)",
+      routes: [
+        {num:"66", from:"Kivukoni/Posta", to:"Makumbusho", via:"Mwanyamala", fare:"900 TZS"},
+        {num:"71", from:"Stesheni", to:"Makumbusho", via:"", fare:"700 TZS"},
+        {num:"74", from:"Kariakoo", to:"Masaki", via:"", fare:"700 TZS"},
+        {num:"56", from:"Mabibo Mwisho", to:"Mnazi Mmoja", via:"Kigogo", fare:"700 TZS"},
+        {num:"57", from:"Mabibo Mwisho", to:"Muhimbili", via:"Kigogo", fare:"700 TZS"},
+        {num:"G1", from:"Gerezani", to:"Buguruni", via:"", fare:"700 TZS"},
+        {num:"G2", from:"Posta", to:"Tabata", via:"", fare:"900 TZS"},
+      ]
+    },
+    {
+      name: "Kanda ya Kusini (Mbagala · Buguruni · Vingunguti · Segerea)",
+      routes: [
+        {num:"77", from:"Kariakoo", to:"Mbagala Rangi Tatu", via:"", fare:"900 TZS"},
+        {num:"78", from:"Kawe", to:"Mbagala Rangi Tatu", via:"", fare:"1200 TZS"},
+        {num:"82", from:"Makumbusho", to:"Mbagala Rangi Tatu", via:"", fare:"1200 TZS"},
+        {num:"84", from:"Mbagala Rangi Tatu", to:"Mvuti", via:"", fare:"700 TZS"},
+        {num:"73", from:"Buguruni", to:"Manzese", via:"", fare:"700 TZS"},
+        {num:"V1", from:"Vingunguti", to:"Kawe", via:"", fare:"1200 TZS"},
+        {num:"V2", from:"Vingunguti", to:"Mbezi", via:"", fare:"900 TZS"},
+        {num:"S1", from:"Segerea", to:"Mwenge", via:"", fare:"900 TZS"},
+        {num:"S2", from:"Gongo la Mboto", to:"Posta", via:"", fare:"1200 TZS"},
+      ]
+    },
+    {
+      name: "Kanda ya Kaskazini (Kawe · Tegeta · Kunduchi · Mbezi)",
+      routes: [
+        {num:"69", from:"Makumbusho", to:"Muhimbili", via:"Kawawa Rd", fare:"900 TZS"},
+        {num:"K1", from:"Kunduchi", to:"Posta", via:"", fare:"1200 TZS"},
+        {num:"K2", from:"Kunduchi", to:"Makumbusho", via:"", fare:"1200 TZS"},
+        {num:"M1", from:"Mburahati", to:"Muhimbili", via:"", fare:"700 TZS"},
+        {num:"M2", from:"Kivukoni", to:"Mburahati", via:"", fare:"900 TZS"},
+        {num:"MK", from:"Mbagala Kuu", to:"Mwenge", via:"", fare:"1200 TZS"},
+        {num:"T1", from:"Tegeta", to:"Posta", via:"Bagamoyo Rd", fare:"1200 TZS"},
+        {num:"T2", from:"Bunju", to:"Mwenge", via:"", fare:"1200 TZS"},
+      ]
+    }
+  ];
+
+  // Flatten stations for dropdowns
+  const stationSet = new Set();
+  zones.forEach(z => z.routes.forEach(r => { stationSet.add(r.from); stationSet.add(r.to); }));
+  const stations = Array.from(stationSet).sort();
+
+  const fromSel = document.getElementById('from');
+  const toSel = document.getElementById('to');
+  stations.forEach(s => {
+    fromSel.innerHTML += `<option value="${s}">${s}</option>`;
+    toSel.innerHTML += `<option value="${s}">${s}</option>`;
+  });
+  toSel.selectedIndex = 1;
+
+  // Approximate coordinates for map pins (illustrative, not GPS-precise)
+  const coords = {
+    "Kimara Mwisho":[-6.7833,39.1500], "Kimara":[-6.7833,39.1500],
+    "Posta":[-6.8161,39.2889], "Kivukoni":[-6.8180,39.2938], "Kivukoni/Posta":[-6.8170,39.2910],
+    "Ubungo":[-6.7756,39.2306], "Kariakoo":[-6.8225,39.2775], "Makumbusho":[-6.8036,39.2489],
+    "Masaki":[-6.7550,39.2836], "Machimbo":[-6.7828,39.2181], "Mwenge":[-6.7708,39.2461],
+    "Tabata":[-6.8228,39.2647], "Sinza":[-6.7714,39.2306], "Stesheni":[-6.8175,39.2894],
+    "Mabibo Mwisho":[-6.7961,39.2183], "Mnazi Mmoja":[-6.8175,39.2822], "Muhimbili":[-6.8064,39.2872],
+    "Gerezani":[-6.8203,39.2839], "Buguruni":[-6.8267,39.2611], "Mbagala Rangi Tatu":[-6.8974,39.2528],
+    "Kawe":[-6.7442,39.2531], "Mvuti":[-6.9139,39.2611], "Manzese":[-6.7994,39.2439],
+    "Vingunguti":[-6.8386,39.2494], "Mbezi":[-6.7500,39.1889], "Segerea":[-6.8153,39.2364],
+    "Gongo la Mboto":[-6.8494,39.2833], "Mburahati":[-6.8064,39.2367], "Mbagala Kuu":[-6.8900,39.2400],
+    "Tegeta":[-6.6853,39.2231], "Bunju":[-6.6167,39.1667], "Kunduchi":[-6.6597,39.2115]
+  };
+
+  // ===== Bolt-style tap-to-pick map =====
+  function distanceKm(a, b){
+    const R = 6371;
+    const dLat = (b[0]-a[0]) * Math.PI/180;
+    const dLon = (b[1]-a[1]) * Math.PI/180;
+    const lat1 = a[0] * Math.PI/180, lat2 = b[0] * Math.PI/180;
+    const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+  }
+  function fareForDistance(km){
+    if(km <= 10) return "700 TZS";
+    if(km <= 20) return "900 TZS";
+    if(km <= 35) return "1,200 TZS";
+    if(km <= 40) return "1,500 TZS";
+    return "Zaidi ya km 40 — uliza kondakta";
+  }
+
+  const pickMap = L.map('pickMap', {zoomControl:false, attributionControl:false}).setView([-6.8, 39.28], 12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:20, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(pickMap);
+  setTimeout(() => pickMap.invalidateSize(), 200);
+
+  let pointA = null, pointB = null, markerA = null, markerB = null, pickLine = null;
+  const iconA = L.divIcon({html:'🟢', className:'', iconSize:[22,22]});
+  const iconB = L.divIcon({html:'🔴', className:'', iconSize:[22,22]});
+
+  function choosePoint(latlngArr, label){
+    if(!pointA){
+      pointA = latlngArr;
+      markerA = L.marker(latlngArr, {icon:iconA}).addTo(pickMap).bindPopup(label || 'Kutoka').openPopup();
+    } else if(!pointB){
+      pointB = latlngArr;
+      markerB = L.marker(latlngArr, {icon:iconB}).addTo(pickMap).bindPopup(label || 'Kwenda').openPopup();
+      pickLine = L.polyline([pointA, pointB], {color:'#FF6B6B', weight:4, dashArray:'6 6'}).addTo(pickMap);
+      pickMap.fitBounds(L.latLngBounds([pointA, pointB]), {padding:[40,40]});
+
+      const km = distanceKm(pointA, pointB);
+      const box = document.getElementById('pickResultBox');
+      const content = document.getElementById('pickResultContent');
+      box.classList.add('show');
+      content.innerHTML = `
+        <div class="result-route">
+          <div class="badge">${km.toFixed(1)}<span style="font-size:9px;">km</span></div>
+          <div class="route-text">
+            <div class="stops">Umbali: ${km.toFixed(1)} km</div>
+            <div class="fare">Nauli inayokadiriwa: ${fareForDistance(km)}</div>
+          </div>
+        </div>
+      `;
+    }
+    // 3rd tap/selection onward does nothing until reset
+  }
+
+  pickMap.on('click', function(e){
+    choosePoint([e.latlng.lat, e.latlng.lng]);
+  });
+
+  function resetPickMap(){
+    if(markerA) pickMap.removeLayer(markerA);
+    if(markerB) pickMap.removeLayer(markerB);
+    if(pickLine) pickMap.removeLayer(pickLine);
+    pointA = pointB = markerA = markerB = pickLine = null;
+    document.getElementById('pickResultBox').classList.remove('show');
+    document.getElementById('pickResultContent').innerHTML = '';
+    pickMap.setView([-6.8, 39.28], 12);
+  }
+
+  // ===== Search bar on the fullscreen map =====
+  function filterStationSuggestions(){
+    const q = document.getElementById('mapSearchInput').value.trim().toLowerCase();
+    const box = document.getElementById('stationSuggestions');
+    if(q.length === 0){ box.classList.remove('show'); box.innerHTML=''; return; }
+    const matches = stations.filter(s => s.toLowerCase().includes(q) && coords[s]).slice(0, 6);
+    if(matches.length === 0){ box.classList.remove('show'); box.innerHTML='<div class="suggestion-empty">Hakuna kituo kinacholingana</div>'; box.classList.add('show'); return; }
+    box.innerHTML = matches.map(s => `<div class="suggestion-item" onmousedown="event.preventDefault(); pickStationFromSearch('${s.replace(/'/g,"\\'")}')">📍 ${s}</div>`).join('');
+    box.classList.add('show');
+  }
+
+  function selectFirstSuggestion(){
+    const q = document.getElementById('mapSearchInput').value.trim().toLowerCase();
+    if(q.length === 0) return;
+    const match = stations.find(s => s.toLowerCase().includes(q) && coords[s]);
+    if(match) pickStationFromSearch(match);
+  }
+
+  function pickStationFromSearch(name){
+    const c = coords[name];
+    if(!c) return;
+    pickMap.setView(c, 15);
+    choosePoint(c, name);
+    document.getElementById('mapSearchInput').value = name;
+    document.getElementById('stationSuggestions').classList.remove('show');
+  }
+
+  // ===== Fullscreen map overlay =====
+  function openMapFullscreen(){
+    document.getElementById('mapFullscreen').classList.add('open');
+    document.getElementById('tabVituoBtn').classList.remove('active');
+    document.getElementById('tabRamaniBtn').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => pickMap.invalidateSize(), 150);
+  }
+  function closeMapFullscreen(){
+    document.getElementById('mapFullscreen').classList.remove('open');
+    document.body.style.overflow = '';
+    switchTab('vituo');
+  }
+
+  let routeMap = null, routeLayer = null;
+  function drawMap(from, to){
+    const mapBox = document.getElementById('mapBox');
+    const a = coords[from], b = coords[to];
+    if(!a || !b){ mapBox.classList.remove('show'); return; }
+    mapBox.classList.add('show');
+
+    if(!routeMap){
+      routeMap = L.map('routeMap', {zoomControl:false, attributionControl:false});
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:20, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(routeMap);
+    }
+    if(routeLayer){ routeMap.removeLayer(routeLayer); }
+
+    const busIcon = L.divIcon({html:'🚌', className:'', iconSize:[24,24]});
+    const m1 = L.marker(a, {icon:busIcon}).bindPopup(from);
+    const m2 = L.marker(b, {icon:busIcon}).bindPopup(to);
+    const line = L.polyline([a,b], {color:'#7A2E2E', weight:4, dashArray:'6 6'});
+    routeLayer = L.layerGroup([m1, m2, line]).addTo(routeMap);
+    routeMap.fitBounds(L.latLngBounds([a,b]), {padding:[30,30]});
+    setTimeout(() => routeMap.invalidateSize(), 150);
+  }
+
+  function searchRoute(){
+    const from = fromSel.value, to = toSel.value;
+    const box = document.getElementById('resultBox');
+    const content = document.getElementById('resultContent');
+    box.classList.add('show');
+
+    if(from === to){
+      content.innerHTML = `<p class="result-empty">Chagua vituo viwili tofauti.</p>`;
+      document.getElementById('mapBox').classList.remove('show');
+      return;
+    }
+
+    let matches = [];
+    zones.forEach(z => z.routes.forEach(r => {
+      if ((r.from===from && r.to===to) || (r.from===to && r.to===from)) matches.push(r);
+    }));
+
+    if(matches.length > 0){
+      content.innerHTML = matches.map(r => `
+        <div class="result-route">
+          <div class="badge">${r.num}</div>
+          <div class="route-text">
+            <div class="stops">${r.from} → ${r.to}</div>
+            ${r.via ? `<div class="via">kupitia ${r.via}</div>` : ""}
+            <div class="fare">Nauli: ${r.fare}</div>
+          </div>
+        </div>
+      `).join("");
+      drawMap(from, to);
+      return;
+    }
+
+    // Fallback: no listed route number, but estimate by straight-line distance
+    const a = coords[from], b = coords[to];
+    if(a && b){
+      const km = distanceKm(a, b);
+      content.innerHTML = `
+        <p class="result-empty" style="margin-bottom:8px;">Hakuna namba maalum ya ruti iliyoorodheshwa kati ya vituo hivi, lakini makadirio ni:</p>
+        <div class="result-route">
+          <div class="badge">${km.toFixed(1)}<span style="font-size:9px;">km</span></div>
+          <div class="route-text">
+            <div class="stops">${from} → ${to}</div>
+            <div class="fare">Nauli inayokadiriwa: ${fareForDistance(km)}</div>
+          </div>
+        </div>
+      `;
+      drawMap(from, to);
+    } else {
+      content.innerHTML = `<p class="result-empty">Hakuna taarifa ya kutosha kati ya "${from}" na "${to}" kwa sasa.</p>`;
+      document.getElementById('mapBox').classList.remove('show');
+    }
+  }
+
+  // Scroll-reveal for sections
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+  }
+
+  function switchTab(tab){
+    document.getElementById('tabVituo').classList.toggle('active', tab==='vituo');
+    document.getElementById('tabVituoBtn').classList.toggle('active', tab==='vituo');
+    document.getElementById('tabRamaniBtn').classList.toggle('active', tab==='ramani');
+  }
+
+  // ===== Install App (PWA) =====
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+  });
+
+  function installApp(){
+    if(!deferredPrompt) return;
+    installBtn.style.display = 'none';
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(() => { deferredPrompt = null; });
+  }
+
+  window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
+    deferredPrompt = null;
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+
+  // — Developer signature —
+  console.log(
+    "%cDaladala Navigator %cv2.0",
+    "color:#2FE6C4; font-weight:bold; font-size:14px;",
+    "color:#22C1F0; font-weight:bold; font-size:12px;"
+  );
+  console.log("Imetengenezwa na Yaasir · Tech Support: 0772282160");
+</script>
+</body>
+</html>
